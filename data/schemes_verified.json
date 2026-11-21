@@ -1,0 +1,77 @@
+[
+  {
+    "id": "pm-kisan",
+    "name": "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+    "category": "Agriculture",
+    "benefit": "Rs 6,000 per year in three equal installments of Rs 2,000 directly to bank account",
+    "eligibility": {
+      "occupations": ["farmer"],
+      "maxAnnualIncome": null,
+      "states": ["ALL"],
+      "requiresLand": true,
+      "minAge": 18
+    },
+    "documentsRequired": ["Aadhaar Card", "Land Ownership Records", "Bank Account Details"],
+    "applicationUrl": "https://pmkisan.gov.in/"
+  },
+  {
+    "id": "pm-svanidhi",
+    "name": "PM SVANidhi (Street Vendor's Atmanirbhar Nidhi)",
+    "category": "Livelihood & Business",
+    "benefit": "Collateral-free working capital loans starting at Rs 10,000 with interest subsidy",
+    "eligibility": {
+      "occupations": ["street_vendor", "vendor", "hawker", "self_employed"],
+      "maxAnnualIncome": null,
+      "states": ["ALL"],
+      "requiresLand": false,
+      "minAge": 18
+    },
+    "documentsRequired": ["Aadhaar Card", "Certificate of Vending / Letter of Recommendation"],
+    "applicationUrl": "https://pmsvanidhi.mohua.gov.in/"
+  },
+  {
+    "id": "pmay-urban",
+    "name": "PMAY-U (Pradhan Mantri Awas Yojana - Urban)",
+    "category": "Housing",
+    "benefit": "Financial assistance / interest subsidy for building or purchasing an affordable home",
+    "eligibility": {
+      "occupations": ["ALL"],
+      "maxAnnualIncome": 300000,
+      "states": ["ALL"],
+      "requiresLand": false,
+      "minAge": 18
+    },
+    "documentsRequired": ["Aadhaar Card", "Income Certificate", "Bank Account Details"],
+    "applicationUrl": "https://pmaymis.gov.in/"
+  },
+  {
+    "id": "mudra-shishu",
+    "name": "PMMY Mudra Loan - Shishu",
+    "category": "Livelihood & Business",
+    "benefit": "Micro-enterprise loans up to Rs 50,000 without collateral",
+    "eligibility": {
+      "occupations": ["self_employed", "street_vendor", "vendor", "small_business"],
+      "maxAnnualIncome": null,
+      "states": ["ALL"],
+      "requiresLand": false,
+      "minAge": 18
+    },
+    "documentsRequired": ["Identity Proof", "Address Proof", "Business Plan / Quotation"],
+    "applicationUrl": "https://www.mudra.org.in/"
+  },
+  {
+    "id": "nsp-pre-matric",
+    "name": "NSP Pre-Matric / Post-Matric Scholarship",
+    "category": "Education",
+    "benefit": "Tuition and maintenance financial support for eligible students",
+    "eligibility": {
+      "occupations": ["student"],
+      "maxAnnualIncome": 250000,
+      "states": ["ALL"],
+      "requiresLand": false,
+      "minAge": 5
+    },
+    "documentsRequired": ["Student ID / Bonafide Certificate", "Income Certificate", "Aadhaar Card"],
+    "applicationUrl": "https://scholarships.gov.in/"
+  }
+]
