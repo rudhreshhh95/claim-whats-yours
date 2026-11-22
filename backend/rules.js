@@ -24,42 +24,41 @@ function deriveAgeBandFromAge(age) {
   return "60_plus";
 }
 
+const AGE_BANDS = ["0_5", "6_17", "18_25", "26_59", "60_plus"];
+const AGE_18_TO_35 = ["18_25", "26_59"];
+
+function hasValue(v) {
+  return v !== undefined && v !== null;
+}
+
 function getFieldValue(target, field) {
   if (!target || typeof target !== "object") return undefined;
 
   let raw;
-  if (field in target) {
+  if (hasValue(target[field])) {
     raw = target[field];
-  } else if (target.profile && field in target.profile) {
+  } else if (target.profile && typeof target.profile === "object" && hasValue(target.profile[field])) {
     raw = target.profile[field];
-  } else if (field === "ageBand" && target.age !== undefined && target.age !== null) {
-    raw = deriveAgeBandFromAge(target.age);
+  }
+
+  if (field === "ageBand") {
+    const normalized = normalizeBandValue(field, raw);
+    const hasAge = hasValue(target.age) && target.age !== "";
+    const derived = hasAge ? deriveAgeBandFromAge(target.age) : undefined;
+    if (derived !== undefined && !AGE_BANDS.includes(normalized)) {
+      raw = derived;
+    }
   }
 
   return normalizeBandValue(field, raw);
 }
 
-function evaluateSingleRule(rule, household, member) {
-  const scope = rule.scope || (member ? "member" : "household");
-  const actual =
-    scope === "household"
-      ? getFieldValue(household, rule.field)
-      : getFieldValue(member, rule.field);
-
-  const expected = Array.isArray(rule.value)
-    ? rule.value.map((v) => normalizeBandValue(rule.field, v))
-    : normalizeBandValue(rule.field, rule.value);
-  const op = rule.op || "eq";
-
-  if (actual === undefined || actual === null) {
-    return false;
-  }
-
+function compareValues(op, actual, expected, isAgeAlias) {
   switch (op) {
     case "eq":
-      return actual === expected;
+      return isAgeAlias ? expected.includes(actual) : actual === expected;
     case "neq":
-      return actual !== expected;
+      return isAgeAlias ? !expected.includes(actual) : actual !== expected;
     case "in":
       return Array.isArray(expected) && expected.includes(actual);
     case "nin":
@@ -79,6 +78,32 @@ function evaluateSingleRule(rule, household, member) {
   }
 }
 
+function evaluateSingleRule(rule, household, member) {
+  const scope = rule.scope || (member ? "member" : "household");
+  const actual =
+    scope === "household"
+      ? getFieldValue(household, rule.field)
+      : getFieldValue(member, rule.field);
+
+  const isAgeAlias = rule.field === "ageBand" && rule.value === "18_to_35";
+  const expected = isAgeAlias
+    ? AGE_18_TO_35
+    : Array.isArray(rule.value)
+      ? rule.value.flatMap((v) =>
+          rule.field === "ageBand" && v === "18_to_35"
+            ? AGE_18_TO_35
+            : [normalizeBandValue(rule.field, v)]
+        )
+      : normalizeBandValue(rule.field, rule.value);
+  const op = rule.op || "eq";
+
+  if (actual === undefined || actual === null) {
+    return "unknown";
+  }
+
+  return compareValues(op, actual, expected, isAgeAlias) ? "pass" : "fail";
+}
+
 export function evaluateSchemeForMember(scheme, household, member) {
   const rules = Array.isArray(scheme.rules) ? scheme.rules : [];
 
@@ -89,24 +114,28 @@ export function evaluateSchemeForMember(scheme, household, member) {
       hasAnyMatch: false,
       passed: [],
       failed: ["No verified eligibility rules configured yet; verify directly with official office"],
+      unknown: [],
       needScore: 0
     };
   }
 
   const passed = [];
   const failed = [];
+  const unknown = [];
 
   for (const rule of rules) {
-    const ok = evaluateSingleRule(rule, household, member);
+    const result = evaluateSingleRule(rule, household, member);
     const label = rule.reason || `${rule.field} ${rule.op || "eq"} ${JSON.stringify(rule.value)}`;
-    if (ok) {
+    if (result === "pass") {
       passed.push(label);
+    } else if (result === "unknown") {
+      unknown.push(label);
     } else {
       failed.push(label);
     }
   }
 
-  const allPassed = failed.length === 0 && passed.length > 0;
+  const allPassed = failed.length === 0 && unknown.length === 0 && passed.length > 0;
   const anyPassed = passed.length > 0;
 
   const needs = Array.isArray(household?.needs) ? household.needs : [];
@@ -118,19 +147,39 @@ export function evaluateSchemeForMember(scheme, household, member) {
     hasAnyMatch: anyPassed,
     passed,
     failed,
+    unknown,
     needScore: allPassed ? Math.min(100, ratioScore + needBonus) : Math.min(74, ratioScore + needBonus)
   };
 }
 
 export function matchHousehold(schemes, payload = {}) {
+  const safePayload = payload && typeof payload === "object" ? payload : {};
+  const householdCandidate =
+    safePayload.household && typeof safePayload.household === "object"
+      ? safePayload.household
+      : safePayload;
   const household =
-    payload.household && typeof payload.household === "object"
-      ? payload.household
-      : payload;
+    householdCandidate && typeof householdCandidate === "object" ? householdCandidate : {};
 
+  const schemeList = Array.isArray(schemes) ? schemes : [];
+
+  const householdState =
+    typeof household.state === "string" ? household.state.trim().toLowerCase() : "";
+
+  const applicableSchemes = schemeList.filter((scheme) => {
+    if (!scheme || typeof scheme !== "object") return false;
+    if (!householdState) return true;
+    const schemeState = typeof scheme.state === "string" ? scheme.state.trim().toLowerCase() : "";
+    if (!schemeState || schemeState === "all") return true;
+    return schemeState === householdState;
+  });
+
+  const validMembers = Array.isArray(household.members)
+    ? household.members.filter((m) => m && typeof m === "object")
+    : [];
   const members =
-    Array.isArray(household.members) && household.members.length > 0
-      ? household.members
+    validMembers.length > 0
+      ? validMembers
       : [{ id: "household_general", label: "Household", name: "Household" }];
 
   const memberMatches = [];
@@ -140,11 +189,15 @@ export function matchHousehold(schemes, payload = {}) {
     const memberId = member.id || member.memberId || member.label || "member";
     const memberName = member.label || member.name || memberId;
 
-    for (const scheme of schemes) {
+    for (const scheme of applicableSchemes) {
       const rules = Array.isArray(scheme.rules) ? scheme.rules : [];
       const evalRes = evaluateSchemeForMember(scheme, household, member);
 
-      if (evalRes.status === "eligible" || evalRes.hasAnyMatch) {
+      if (
+        evalRes.status === "eligible" ||
+        evalRes.hasAnyMatch ||
+        (evalRes.failed.length === 0 && evalRes.unknown.length > 0)
+      ) {
         const entry = {
           schemeId: scheme.id,
           id: scheme.id,
@@ -164,6 +217,7 @@ export function matchHousehold(schemes, payload = {}) {
           status: rules.length === 0 ? "check" : evalRes.status,
           passed: evalRes.passed,
           failed: evalRes.failed,
+          unknown: evalRes.unknown,
           needScore: evalRes.needScore
         };
         memberMatches.push(entry);
@@ -196,6 +250,7 @@ export function matchHousehold(schemes, payload = {}) {
     })
   };
 }
+
 
 const DEFAULT_SAMPLE_HOUSEHOLD = {
   householdId: "hh_sample_tn",
