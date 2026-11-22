@@ -1,73 +1,98 @@
-# claim-whats-yours
 <div align="center">
 
-<!-- Header Banner via Capsule Render -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F766E,50:0D9488,100:D97706&height=210&section=header&text=URIMAI%20%E2%80%94%20Claim%20What's%20Yours&fontSize=38&fontColor=ffffff&fontAlignY=38&desc=AI-Assisted%20Welfare%20Eligibility%20%26%20Application%20Tracker%20for%20Indian%20Households&descSize=16&descAlignY=58&animation=fadeIn" alt="Urimai Banner" width="100%" />
+<!-- Animated Typing Hero Title -->
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=700&size=36&duration=3200&pause=1000&color=0D9488&center=true&vCenter=true&width=780&height=65&lines=URIMAI+%E2%80%94+Claim+What's+Yours;AI+Welfare+Eligibility+%26+Tracker;Built+for+Tamil+Nadu+%26+India" alt="Urimai Animated Title" />
+</a>
 
-<!-- Tech & Domain Badges -->
+<!-- Subtitle Typing Line -->
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=500&size=16&duration=3500&pause=1200&color=D97706&center=true&vCenter=true&width=720&height=35&lines=Speak+your+family+story+%E2%86%92+Get+ranked+schemes+%E2%86%92+Track+applications;Zero+guesswork.+Verified+rules.+Actionable+checklists." alt="Urimai Subtitle" />
+</a>
+
+<br/>
+
+<!-- Aesthetic Pill Badges -->
 <p>
-  <img src="https://img.shields.io/badge/Focus-Tamil%20Nadu%20%26%20Central%20Schemes-0F766E?style=for-the-badge&logo=gov.uk&logoColor=white" alt="Focus" />
-  <img src="https://img.shields.io/badge/React-Vite%20%2B%20Tailwind-0284C7?style=for-the-badge&logo=react&logoColor=white" alt="Frontend" />
-  <img src="https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-15803D?style=for-the-badge&logo=node.js&logoColor=white" alt="Backend" />
-  <img src="https://img.shields.io/badge/AI-Google%20Gemini%20Multi--Model-D97706?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Gemini AI" />
+  <img src="https://img.shields.io/badge/Region-Tamil%20Nadu%20%26%20Central%20India-0F766E?style=for-the-badge&logo=compass&logoColor=white" alt="Region" />
+  <img src="https://img.shields.io/badge/Frontend-React%20%E2%80%A2%20Vite%20%E2%80%A2%20Tailwind-0284C7?style=for-the-badge&logo=react&logoColor=white" alt="Frontend" />
+  <img src="https://img.shields.io/badge/Backend-Node.js%20%E2%80%A2%20Express-15803D?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Backend" />
+  <img src="https://img.shields.io/badge/AI-Gemini%20Multi--Model-D97706?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Gemini" />
 </p>
 
-<p>
-  <strong>Bridging the last-mile welfare gap</strong> — turning complex government eligibility rules and spoken family details into ranked, actionable scheme matches and trackable applications.
-</p>
+<br/>
 
-<a href="#-architecture--data-flow">Architecture</a> •
-<a href="#-core-capabilities">Capabilities</a> •
-<a href="#-quick-start">Quick Start</a> •
-<a href="#-api-reference">API Reference</a>
+> *"Urimai" (உரிமை) means **Right** in Tamil — turning complex government scheme criteria into clear, personalized entitlements every household can claim.*
+
+<br/>
+
+[✨ Overview](#-overview) &nbsp;•&nbsp;
+[🧭 Architecture](#-system-architecture) &nbsp;•&nbsp;
+[⚡ Key Features](#-key-features) &nbsp;•&nbsp;
+[🚀 Quick Start](#-quick-start) &nbsp;•&nbsp;
+[🔌 API Reference](#-api-reference)
 
 </div>
 
 ---
 
-## 🎯 Why Urimai?
+## ✨ Overview
 
-Millions of eligible citizens miss out on state and central welfare benefits due to fragmented scheme portals, dense legal eligibility criteria, and paperwork bottlenecks. **Urimai** (*"Right"* in Tamil) simplifies discovery into three steps:
+Millions of eligible families miss out on state and central welfare programs due to scattered portals, dense eligibility rules, and paperwork confusion. **Urimai** bridges that gap in three effortless steps:
 
-1. **Speak or Select:** Describe a household naturally via voice/text or toggle member roles (`Student`, `Farmer`, `Widow`, `Senior 60+`, `Daily Wage`, `Disabled`) and household needs.
-2. **Deterministic + Relevance-Ranked Matching:** Evaluates verified eligibility rules per family member and surfaces high-relevance targeted schemes ahead of generic `18+` programs.
-3. **Track to Completion:** Save matched schemes with document checklists, deadlines, and office follow-up statuses.
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <h3>1️⃣ Speak or Select</h3>
+      <p>Describe your household in plain language via voice/text or toggle roles (<code>Student</code>, <code>Farmer</code>, <code>Widow</code>, <code>Senior 60+</code>, <code>Daily Wage</code>, <code>Disabled</code>) and needs.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>2️⃣ Smart Match & Rank</h3>
+      <p>Deterministic rule evaluation paired with role/need relevance scoring surfaces high-impact targeted schemes ahead of generic <code>18+</code> programs.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>3️⃣ Track to Approval</h3>
+      <p>Save schemes with resolved titles, required document checklists, deadlines, and status tracking until benefits are received.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🧭 Architecture & Data Flow
-
-GitHub renders this interactive system diagram natively:
+## 🧭 System Architecture
 
 ```mermaid
 flowchart LR
-    subgraph Client ["🖥️ Frontend (React + Vite + Tailwind)"]
-        UI["FamilyCards & Needs"]
+    subgraph UI ["🖥️ Client — React + Vite + Tailwind"]
+        direction TB
+        FC["FamilyCards & Needs"]
         VM["VoiceModal (NLP Input)"]
-        RP["ResultsPanel (Ranked Matches)"]
+        RP["ResultsPanel (Ranked Cards)"]
         TR["Tracker & Checklists"]
-        AR["AdminRules Editor"]
+        AR["AdminRules Studio"]
     end
 
-    subgraph Server ["⚙️ Backend (Node.js + Express)"]
+    subgraph API ["⚙️ Server — Node.js + Express"]
+        direction TB
         EX["POST /api/extract"]
         MA["POST /api/match"]
         TK["/api/tracker CRUD"]
         SC["/api/schemes API"]
-        RE["rules.js Engine<br/>(studentLevel + relevanceScore)"]
+        RE["rules.js Engine<br/>studentLevel + relevanceScore"]
     end
 
-    subgraph AI_Data ["🧠 AI & Verified Data Layer"]
+    subgraph DATA ["🧠 AI & Verified Data"]
+        direction TB
         GM["Google Gemini API<br/>(Multi-Model Retry Rotation)"]
-        FB["Deterministic Keyword Fallback"]
-        SV[("schemes_verified.json<br/>& schemes_all.json")]
-        ST[("store.json<br/>(Tracker State)")]
+        FB["Keyword Fallback Engine"]
+        SV[("schemes_verified.json<br/>schemes_all.json")]
+        ST[("store.json")]
     end
 
     VM --> EX
     EX --> GM
-    GM -.->|On Rate Limit / Offline| FB
-    UI --> MA
+    GM -.->|Rate Limit / Offline| FB
+    FC --> MA
     MA --> RE
     RE <--> SV
     RE --> RP
@@ -76,3 +101,7 @@ flowchart LR
     TK <--> ST
     AR <--> SC
     SC <--> SV
+
+    style UI fill:#f0fdfa,stroke:#0d9488,stroke-width:2px,color:#134e4a
+    style API fill:#eff6ff,stroke:#0284c7,stroke-width:2px,color:#1e3a8a
+    style DATA fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#78350f
