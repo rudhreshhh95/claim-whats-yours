@@ -1,7 +1,7 @@
-// Small client for the backend in API.md. Every helper rejects on network error,
+﻿// Small client for the backend in API.md. Every helper rejects on network error,
 // timeout, or a non-OK status, so callers can fall back to mockData.js.
 
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+export const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const TIMEOUT_MS = 3000
 
