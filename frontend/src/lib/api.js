@@ -39,8 +39,8 @@ export async function apiFetch(path, options = {}, timeoutMs = 3000) {
 }
 
 /**
- * Delete all of a household's data. Refuses to call the API without a householdId,
- * because the server wipes everything when householdId is missing.
+ * Delete all of a household's data. Refuses to call the API without a householdId;
+ * the server returns 400 when householdId is missing.
  */
 export async function deleteMyData(householdId, token) {
   if (!householdId) throw new Error('householdId required');

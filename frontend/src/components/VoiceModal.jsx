@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { API_BASE } from '../lib/api.js';
-import { transliterateTamilToLatin, translateTamil } from '../lib/familyParser.js';
+import { translateTamil } from '../lib/familyParser.js';
+import { MicIcon, XIcon } from './Icons';
 
 const LANGUAGES = [
   { code: 'ta-IN', label: 'Tamil (ta-IN)' },
@@ -110,7 +111,7 @@ export default function VoiceModal({ open, onClose, onResult }) {
             aria-label="Close"
             className="rounded-full px-2 py-1 text-slate-500 hover:bg-slate-100"
           >
-            ✕
+            <XIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -141,8 +142,9 @@ export default function VoiceModal({ open, onClose, onResult }) {
           type="button"
           onClick={startSpeaking}
           disabled={!SR || listening}
-          className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
+          <MicIcon className="w-4 h-4" />
           {listening ? 'Listening…' : 'Start speaking'}
         </button>
 

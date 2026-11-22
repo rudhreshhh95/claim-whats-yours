@@ -78,7 +78,7 @@ function sanitizeHousehold(rawHh = {}) {
   delete cleanHh.bankAccount;
 
   return {
-    householdId: cleanHh.householdId || "hh_sample_tn",
+    householdId: cleanHh.householdId || `hh_${crypto.randomUUID()}`,
     district: cleanHh.district || "",
     state: cleanHh.state || "Tamil Nadu",
     incomeBand: cleanHh.incomeBand || "lt_1l",
@@ -226,7 +226,7 @@ function extractWithKeywords(rawText = "") {
     });
   }
 
-  if (members.length === 0) {
+  if (members.length === 0 && /[a-z0-9\u0B80-\u0BFF]/i.test(lower)) {
     const fallbackAge = ageMatches.length > 0 ? Number(ageMatches[0][2]) : 35;
     members.push({
       id: "m_1",
@@ -544,30 +544,35 @@ app.post("/api/extract", async (req, res) => {
 });
 
 app.post("/api/match", (req, res) => {
-  const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []);
-  const body = req.body || {};
-  const cleanHh = sanitizeHousehold(body.household && typeof body.household === "object" ? body.household : body);
-  const safeBody = { ...body };
-  delete safeBody.aadhaarNo;
-  delete safeBody.rationCardNo;
-  delete safeBody.panNo;
-  delete safeBody.voterIdNo;
-  delete safeBody.bankAccount;
-  const result = matchHousehold(verifiedSchemes, { ...safeBody, household: cleanHh });
+  try {
+    const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []);
+    const body = req.body || {};
+    const cleanHh = sanitizeHousehold(body.household && typeof body.household === "object" ? body.household : body);
+    const safeBody = { ...body };
+    delete safeBody.aadhaarNo;
+    delete safeBody.rationCardNo;
+    delete safeBody.panNo;
+    delete safeBody.voterIdNo;
+    delete safeBody.bankAccount;
+    const result = matchHousehold(verifiedSchemes, { ...safeBody, household: cleanHh });
 
-  const store = readStore();
-  store.households[cleanHh.householdId] = cleanHh;
-  writeStore(store);
+    const store = readStore();
+    store.households[cleanHh.householdId] = cleanHh;
+    writeStore(store);
 
-  const eligibleMatches = result.matches.filter((m) => m.status === "eligible").slice(0, 5);
-  const matchMsgs = eligibleMatches.map((m) => ({
-    householdId: cleanHh.householdId,
-    trigger: "new_match",
-    text: `Likely eligible for ${m.name} (${m.memberName}). Open checklist and steps. Reply STOP to opt out.`
-  }));
-  appendMessages(cleanHh.householdId, matchMsgs);
+    const eligibleMatches = result.matches.filter((m) => m.status === "eligible").slice(0, 5);
+    const matchMsgs = eligibleMatches.map((m) => ({
+      householdId: cleanHh.householdId,
+      trigger: "new_match",
+      text: `Likely eligible for ${m.name} (${m.memberName}). Open checklist and steps. Reply STOP to opt out.`
+    }));
+    appendMessages(cleanHh.householdId, matchMsgs);
 
-  res.json(result);
+    res.json(result);
+  } catch (err) {
+    console.error("/api/match failed:", err);
+    res.status(500).json({ error: "internal_error" });
+  }
 });
 
 app.put("/api/schemes/:id", (req, res) => {
@@ -700,19 +705,30 @@ app.post("/api/tracker", (req, res) => {
       ? body.title.trim()
       : findSchemeTitle(body.schemeId) || String(body.schemeId);
 
+  const memberId = body.memberId || "household_general";
+  const existing = store.trackerItems.find(
+    (i) => String(i.schemeId) === String(body.schemeId) && String(i.memberId) === String(memberId)
+  );
   const item = {
-    id: body.id || `trk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    id: existing?.id || body.id || `trk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     householdId: body.householdId || "hh_sample_tn",
-    memberId: body.memberId || "household_general",
+    memberId,
     schemeId: body.schemeId,
     title: resolvedTitle,
     status: body.status || "Not started",
     deadline: body.deadline || null,
     followUpDate: body.followUpDate || null,
-    checklistDone: Array.isArray(body.checklistDone) ? body.checklistDone : []
+    checklistDone: Array.isArray(body.checklistDone) ? body.checklistDone : [],
+    ...(body.memberName ? { memberName: body.memberName } : {}),
+    ...(body.category ? { category: body.category } : {}),
+    ...(body.targetDate ? { targetDate: body.targetDate } : {})
   };
 
-  store.trackerItems.push(item);
+  if (existing) {
+    Object.assign(existing, item);
+  } else {
+    store.trackerItems.push(item);
+  }
   writeStore(store);
 
   if (item.deadline) {
@@ -734,7 +750,7 @@ app.post("/api/tracker", (req, res) => {
     ]);
   }
 
-  res.status(201).json(item);
+  res.status(201).json(existing || item);
 });
 
 app.patch("/api/tracker/:id", (req, res) => {
@@ -754,6 +770,7 @@ app.patch("/api/tracker/:id", (req, res) => {
     ...(updates.status !== undefined ? { status: updates.status } : {}),
     ...(updates.deadline !== undefined ? { deadline: updates.deadline } : {}),
     ...(updates.followUpDate !== undefined ? { followUpDate: updates.followUpDate } : {}),
+    ...(updates.targetDate !== undefined ? { targetDate: updates.targetDate } : {}),
     ...(Array.isArray(updates.checklistDone) ? { checklistDone: updates.checklistDone } : {})
   };
 
@@ -804,7 +821,10 @@ app.post("/api/messages/read", (req, res) => {
 
 // Privacy delete route
 app.delete("/api/me", (req, res) => {
-  const { householdId, token } = req.query || {};
+  const { householdId } = req.query || {};
+  const authHeader = req.headers?.authorization || "";
+  const bearer = /^Bearer\s+/i.test(authHeader) ? authHeader.replace(/^Bearer\s+/i, "").trim() : "";
+  const token = bearer || req.query?.token;
   const store = readStore();
 
   if (token && !store.accounts[token]) {

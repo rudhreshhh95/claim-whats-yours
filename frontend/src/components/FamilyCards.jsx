@@ -1,32 +1,29 @@
+import {
+  UserIcon,
+  CalendarIcon,
+  UsersIcon,
+  BriefcaseIcon,
+  GraduationCapIcon,
+  SproutIcon,
+  Trash2Icon,
+  PlusIcon,
+} from './Icons';
+
 const ROLES = [
-  { key: 'isStudent', label: 'Student' },
-  { key: 'isFarmer', label: 'Farmer' },
-  { key: 'isWidow', label: 'Widow' },
-  { key: 'isSenior', label: 'Senior 60+' },
-  { key: 'isDailyWage', label: 'Daily Wage' },
+  { key: 'isStudent', label: 'Student', Icon: GraduationCapIcon },
+  { key: 'isFarmer', label: 'Farmer', Icon: SproutIcon },
+  { key: 'isWidow', label: 'Widow', Icon: UserIcon },
+  { key: 'isSenior', label: 'Senior 60+', Icon: UserIcon },
+  { key: 'isDailyWage', label: 'Daily Wage', Icon: BriefcaseIcon },
 ];
 
 const inputClass =
   'w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100';
 
+const labelClass = 'mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-600';
+
 // Student level inferred from age when a student has no level yet.
 const studentLevelFor = age => (Number(age) >= 18 ? 'college' : 'school');
-
-function XIcon({ className = 'h-4 w-4' }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
 
 export default function FamilyCards({ members, setMembers }) {
   const updateMember = (id, patch) =>
@@ -93,9 +90,9 @@ export default function FamilyCards({ members, setMembers }) {
       {members.map((m, idx) => (
         <div
           key={m.id}
-          className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+          className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
         >
-          <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center justify-between pb-4">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Person {idx + 1}
             </span>
@@ -105,13 +102,16 @@ export default function FamilyCards({ members, setMembers }) {
               aria-label={`Remove person ${idx + 1}`}
               className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-600"
             >
-              <XIcon />
+              <Trash2Icon className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-3">
             <label className="block sm:col-span-1">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Name</span>
+              <span className={labelClass}>
+                <UserIcon className="w-4 h-4" />
+                Name
+              </span>
               <input
                 type="text"
                 value={m.name}
@@ -121,7 +121,10 @@ export default function FamilyCards({ members, setMembers }) {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Age</span>
+              <span className={labelClass}>
+                <CalendarIcon className="w-4 h-4" />
+                Age
+              </span>
               <input
                 type="number"
                 min="0"
@@ -132,7 +135,10 @@ export default function FamilyCards({ members, setMembers }) {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Gender</span>
+              <span className={labelClass}>
+                <UsersIcon className="w-4 h-4" />
+                Gender
+              </span>
               <select
                 value={m.gender}
                 onChange={e => updateMember(m.id, { gender: e.target.value })}
@@ -145,9 +151,10 @@ export default function FamilyCards({ members, setMembers }) {
             </label>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
             {ROLES.map(role => {
               const on = !!m[role.key];
+              const { Icon } = role;
               return (
                 <button
                   key={role.key}
@@ -155,12 +162,13 @@ export default function FamilyCards({ members, setMembers }) {
                   aria-pressed={on}
                   onClick={() => toggleRole(m.id, role.key)}
                   className={
-                    'rounded-full border px-3 py-1 text-xs font-medium transition ' +
+                    'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ' +
                     (on
-                      ? 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300')
                   }
                 >
+                  <Icon className="w-4 h-4" />
                   {role.label}
                 </button>
               );
@@ -172,9 +180,10 @@ export default function FamilyCards({ members, setMembers }) {
       <button
         type="button"
         onClick={addMember}
-        className="w-full rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
       >
-        + Add Another Person
+        <PlusIcon className="w-4 h-4" />
+        Add Another Person
       </button>
     </div>
   );

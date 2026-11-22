@@ -109,6 +109,7 @@ function compareValues(op, actual, expected, isAgeAlias) {
 }
 
 function evaluateSingleRule(rule, household, member) {
+  if (!rule || typeof rule !== "object") return "unknown";
   const scope = rule.scope || (member ? "member" : "household");
   const actual =
     scope === "household"
@@ -282,7 +283,7 @@ export function evaluateSchemeForMember(scheme, household, member) {
 
   for (const rule of rules) {
     const result = evaluateSingleRule(rule, household, normalizedMember);
-    const label = rule.reason || `${rule.field} ${rule.op || "eq"} ${JSON.stringify(rule.value)}`;
+    const label = rule?.reason || `${rule?.field} ${rule?.op || "eq"} ${JSON.stringify(rule?.value)}`;
     if (result === "pass") {
       passed.push(label);
     } else if (result === "unknown") {

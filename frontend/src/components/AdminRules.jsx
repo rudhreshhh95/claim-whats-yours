@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../lib/api.js';
+import { SlidersHorizontalIcon, SaveIcon } from './Icons';
 
 const NUMERIC_FIELDS = ['incomeMax', 'ageMin', 'ageMax'];
 const CHECKBOX_FIELDS = ['requiresLand', 'requiresStudent', 'requiresFarmer', 'requiresWidow'];
@@ -172,7 +173,10 @@ export function AdminRules({ household, onNotify, onToast, onMatches }) {
             key={id}
             className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col gap-4"
           >
-            <h3 className="text-lg font-semibold text-slate-900">{name}</h3>
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+              <SlidersHorizontalIcon className="w-5 h-5 text-indigo-600" />
+              {name}
+            </h3>
 
             <div className="grid grid-cols-2 gap-3">
               {present.map((key) =>
@@ -204,8 +208,9 @@ export function AdminRules({ household, onNotify, onToast, onMatches }) {
               type="button"
               onClick={() => handleSave(scheme)}
               disabled={isSaving}
-              className="mt-auto rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
             >
+              <SaveIcon className="w-4 h-4" />
               {isSaving ? 'Saving…' : 'Save & Notify Families'}
             </button>
           </div>

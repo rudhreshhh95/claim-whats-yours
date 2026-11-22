@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { apiFetch, deleteMyData } from '../lib/api.js';
 import { ShieldIcon, BellIcon, XIcon } from './Icons.jsx';
 
-export default function SmsDrawer({ open, onClose, messages, household, token, setToken, onDeleted }) {
+export default function SmsDrawer({ open, onClose, messages, householdId, token, setToken, onDeleted }) {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [sent, setSent] = useState(false);
@@ -47,18 +47,20 @@ export default function SmsDrawer({ open, onClose, messages, household, token, s
   }
 
   async function deleteData() {
-    if (!household) return;
+    if (!householdId) return;
     if (!window.confirm('Delete all of your household data? This cannot be undone.')) return;
     setDeleteError('');
     setBusy(true);
     try {
-      await deleteMyData(household, token);
-      if (onDeleted) onDeleted();
+      await deleteMyData(householdId, token);
     } catch (err) {
       setDeleteError(err.message || 'Could not delete data. Your local data is kept.');
+      return;
     } finally {
       setBusy(false);
     }
+    // Only reached after the server confirmed the delete.
+    if (onDeleted) onDeleted();
   }
 
   const inputCls = 'w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none';
@@ -119,7 +121,7 @@ export default function SmsDrawer({ open, onClose, messages, household, token, s
         <section className="rounded-3xl border border-slate-200 shadow-sm p-5 space-y-3">
           <button
             type="button"
-            disabled={busy || !household}
+            disabled={busy || !householdId}
             onClick={deleteData}
             className="w-full rounded-2xl border border-red-500 text-red-600 hover:bg-red-50 px-4 py-2 text-sm font-medium disabled:opacity-50"
           >

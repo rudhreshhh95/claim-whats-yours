@@ -7,16 +7,25 @@ import Catalogue from './components/Catalogue.jsx';
 import Tracker from './components/Tracker.jsx';
 import AdminRules from './components/AdminRules.jsx';
 import { StatusPill } from './components/StatusPill.jsx';
-import { BellIcon } from './components/Icons.jsx';
+import {
+  BellIcon,
+  BookmarkCheckIcon,
+  LockIcon,
+  MicIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+  SlidersHorizontalIcon,
+  Trash2Icon,
+} from './components/Icons.jsx';
 import { apiFetch, deleteMyData } from './lib/api.js';
 import { parseFamilyText } from './lib/familyParser.js';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const QUICK_TAGS = ['Pension', 'Scholarship', 'Farming', 'Housing', 'Widow support'];
 const TABS = [
-  { id: 'find', label: 'Find Schemes' },
-  { id: 'tracker', label: 'My Tracker' },
-  { id: 'rules', label: 'Update Rules [Admin]' },
+  { id: 'find', label: 'Find Schemes', icon: SearchIcon },
+  { id: 'tracker', label: 'My Tracker', icon: BookmarkCheckIcon },
+  { id: 'rules', label: 'Update Rules [Admin]', icon: SlidersHorizontalIcon },
 ];
 
 // Maps a parser member ({ label, ... }) onto the member shape the cards expect.
@@ -97,6 +106,9 @@ export default function App() {
     setToken(null);
     setMessages([]);
     setIntakeText('');
+    setIncomeBand('lt_1l');
+    setSchemes([]);
+    setOfflineCatalogue(false);
   }
 
   async function handleDelete() {
@@ -110,14 +122,16 @@ export default function App() {
   }
 
   async function fillFamily() {
+    if (!intakeText.trim()) return;
     try {
       const res = await apiFetch('/api/extract', {
         method: 'POST',
         headers: JSON_HEADERS,
         body: JSON.stringify({ text: intakeText, lang: 'en' }),
       });
-      if (Array.isArray(res?.members)) {
-        setMembers(res.members.map(toMember));
+      const apiMembers = res?.household?.members;
+      if (Array.isArray(apiMembers)) {
+        setMembers(apiMembers.map(toMember));
         return;
       }
       throw new Error('No members in response');
@@ -156,7 +170,14 @@ export default function App() {
       status: 'Not Started',
       targetDate: '',
     };
-    setTrackerItems((prev) => [...prev, item]);
+    setTrackerItems((prev) => {
+      const isSame = (t) => t.schemeId === item.schemeId && t.memberId === item.memberId;
+      if (!prev.some(isSame)) return [...prev, item];
+      // Same scheme for same member already tracked: update that row in place.
+      return prev.map((t) =>
+        isSame(t) ? { ...item, id: t.id, status: t.status, targetDate: t.targetDate } : t
+      );
+    });
     try {
       await apiFetch('/api/tracker', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(item) });
     } catch {
@@ -204,12 +225,13 @@ export default function App() {
                 type="button"
                 onClick={() => setView(tab.id)}
                 aria-pressed={view === tab.id}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition ${
                   view === tab.id
                     ? 'bg-slate-900 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
+                <tab.icon className="w-5 h-5" />
                 {tab.label}
               </button>
             ))}
@@ -231,8 +253,9 @@ export default function App() {
             <button
               type="button"
               onClick={handleDelete}
-              className="rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"
             >
+              <Trash2Icon className="w-4 h-4" />
               Delete My Data
             </button>
           </div>
@@ -250,9 +273,18 @@ export default function App() {
                 Speak or type your family details in Tamil or English. Get matched with verified Tamil Nadu &amp; Central welfare schemes and track your applications in one place — with zero sensitive IDs required.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <span className="rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">Tamil &amp; English Voice</span>
-                <span className="rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">Zero IDs Collected</span>
-                <span className="rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">Verified Schemes</span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">
+                  <MicIcon className="h-3.5 w-3.5" />
+                  Tamil &amp; English Voice
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">
+                  <LockIcon className="h-3.5 w-3.5" />
+                  Zero IDs Collected
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">
+                  <ShieldCheckIcon className="h-3.5 w-3.5" />
+                  Verified Schemes
+                </span>
               </div>
             </div>
 
@@ -274,23 +306,9 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setVoiceOpen(true)}
-                  className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+                  className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="9" y="2" width="6" height="12" rx="3" />
-                    <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                  </svg>
+                  <MicIcon className="w-4 h-4" />
                   Speak
                 </button>
 
@@ -354,8 +372,9 @@ export default function App() {
                 type="button"
                 onClick={findSchemes}
                 disabled={loading}
-                className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
               >
+                <SearchIcon className="w-4 h-4" />
                 {loading ? 'Searching…' : 'Find Schemes'}
               </button>
             </div>
@@ -383,6 +402,7 @@ export default function App() {
             trackerItems={trackerItems}
             setTrackerItems={setTrackerItems}
             schemes={schemes}
+            householdId={householdId}
           />
         )}
 
@@ -403,7 +423,7 @@ export default function App() {
         open={smsOpen}
         onClose={() => setSmsOpen(false)}
         messages={messages}
-        household={{ members, incomeBand }}
+        householdId={householdId}
         token={token}
         setToken={setToken}
         onDeleted={() => {

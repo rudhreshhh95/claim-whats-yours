@@ -1,8 +1,28 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../lib/api.js';
-import { CheckIcon } from './Icons.jsx';
+import { CheckIcon, ClockIcon, Trash2Icon } from './Icons.jsx';
 
 const STATUS_STEPS = ['Not Started', 'Applied', 'Approved'];
+
+const STATUS_ICONS = {
+  'Not Started': ClockIcon,
+  Applied: ClockIcon,
+  Approved: CheckIcon,
+};
+
+// Merge server items with local items by id: fetched wins for the same id,
+// local-only items (not yet synced) are kept.
+function mergeById(local, fetched) {
+  const fetchedIds = new Set(fetched.map((it) => it.id));
+  return [...fetched, ...local.filter((it) => !fetchedIds.has(it.id))];
+}
+
+// Builds the tracker GET path, scoped to a household when one is known.
+function trackerPath(householdId) {
+  return householdId
+    ? `/api/tracker?householdId=${encodeURIComponent(householdId)}`
+    : '/api/tracker';
+}
 
 function groupByMember(items) {
   const groups = new Map();
@@ -16,19 +36,18 @@ function groupByMember(items) {
   return Array.from(groups.values());
 }
 
-export default function Tracker({ members = [], trackerItems = [], setTrackerItems, schemes = [] }) {
+export default function Tracker({ members = [], trackerItems = [], setTrackerItems, schemes = [], householdId }) {
   const [notice, setNotice] = useState('');
-
-  // Load tracker items from the server on mount.
+  // Load tracker items from the server on mount, scoped to this household.
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const data = await apiFetch('/api/tracker');
+        const data = await apiFetch(trackerPath(householdId));
         if (cancelled) return;
         const list = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
-        setTrackerItems(list);
+        setTrackerItems((prev) => mergeById(prev, list));
       } catch (err) {
         if (cancelled) return;
         if (err?.network) setNotice('Saved locally (offline)');
@@ -38,7 +57,7 @@ export default function Tracker({ members = [], trackerItems = [], setTrackerIte
     return () => {
       cancelled = true;
     };
-  }, [setTrackerItems]);
+  }, [setTrackerItems, householdId]);
 
   function updateLocal(id, changes) {
     setTrackerItems((prev) =>
@@ -50,7 +69,7 @@ export default function Tracker({ members = [], trackerItems = [], setTrackerIte
     const next = { status: item.status, targetDate: item.targetDate, ...changes };
     updateLocal(item.id, next);
     try {
-      await apiFetch(`/api/tracker/${item.id}`, {
+      await apiFetch(`/api/tracker/${encodeURIComponent(item.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next.status, targetDate: next.targetDate }),
@@ -69,9 +88,9 @@ export default function Tracker({ members = [], trackerItems = [], setTrackerIte
       if (err?.network) setNotice('Removed locally (offline)');
       // Re-sync from the server so local state does not drift from it.
       try {
-        const data = await apiFetch('/api/tracker');
+        const data = await apiFetch(trackerPath(householdId));
         const list = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
-        setTrackerItems(list);
+        setTrackerItems((prev) => mergeById(prev, list));
       } catch {
         // Keep the optimistic state if the server cannot be reached.
       }
@@ -117,8 +136,9 @@ export default function Tracker({ members = [], trackerItems = [], setTrackerIte
                   <button
                     type="button"
                     onClick={() => removeItem(item)}
-                    className="rounded-lg px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-sm text-red-600 hover:bg-red-50"
                   >
+                    <Trash2Icon className="w-4 h-4" />
                     Remove
                   </button>
                 </div>
@@ -126,19 +146,20 @@ export default function Tracker({ members = [], trackerItems = [], setTrackerIte
                 <div className="mt-3 inline-flex overflow-hidden rounded-xl border border-slate-200" role="group">
                   {STATUS_STEPS.map((step) => {
                     const active = item.status === step;
+                    const StepIcon = STATUS_ICONS[step];
                     return (
                       <button
                         key={step}
                         type="button"
                         aria-pressed={active}
                         onClick={() => changeItem(item, { status: step })}
-                        className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium transition ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
                           active
                             ? 'bg-indigo-600 text-white'
                             : 'bg-white text-slate-600 hover:bg-slate-50'
                         }`}
                       >
-                        {active && <CheckIcon className="h-3.5 w-3.5" />}
+                        <StepIcon className="w-4 h-4" />
                         {step}
                       </button>
                     );
