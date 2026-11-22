@@ -144,6 +144,17 @@ function extractWithKeywords(rawText = "") {
   const isDailyWage = /daily\s*wage|wage\s*worker|coolie|labour|labor/i.test(lower);
   const isStudent = /student|school|college|class\s*\d+|10th|12th/i.test(lower);
 
+  // Leading person name, e.g. "rudhresh, 12, student" or "sita 62 widow farmer".
+  const leadingNameMatch = cleaned.match(/^\s*([A-Za-z]{2,20})\s*(?:,|\s)\s*\d/);
+  const NON_NAME_WORDS = /^(widow|farmer|student|household|family|member|income|son|daughter|husband|wife|mother|father|aged?|years?|yrs?|male|female|woman|man|child|kid|below|under|less|than|lakh|acre|land|the|and)$/i;
+  const primaryName =
+    leadingNameMatch && !NON_NAME_WORDS.test(leadingNameMatch[1])
+      ? leadingNameMatch[1][0].toUpperCase() + leadingNameMatch[1].slice(1).toLowerCase()
+      : "";
+  // A single widow who farms: no second earner/person mentioned.
+  const secondPersonRe = /\b(murugan|son|daughter|kavya|child|kid|wife|sister|brother|father|student)\b/i;
+  const soloWidowFarmer = isWidow && isFarmer && !secondPersonRe.test(lower);
+
   let studentLevel;
   if (/\b(college|degree|ug|b\.sc|b\.a\.?|b\.com|b\.tech)\b/i.test(lower)) {
     studentLevel = "college";
@@ -158,7 +169,7 @@ function extractWithKeywords(rawText = "") {
     const ageNum = widowAgeMatch ? Number(widowAgeMatch[1]) : 62;
     members.push({
       id: "m_widow",
-      label: /\bselvi\b/i.test(lower) ? "Selvi" : "Widow Member",
+      label: /\bselvi\b/i.test(lower) ? "Selvi" : primaryName || "Widow Member",
       age: ageNum,
       ageBand: deriveAgeBand(ageNum) || "60_plus",
       gender: "female",
@@ -171,7 +182,7 @@ function extractWithKeywords(rawText = "") {
     });
   }
 
-  if (isFarmer || isDailyWage || /\b(murugan|son|husband|father)\b/i.test(lower)) {
+  if (!soloWidowFarmer && (isFarmer || isDailyWage || /\b(murugan|son|husband|father)\b/i.test(lower))) {
     const adultAgeMatch = lower.match(/\b(2[0-9]|3[0-9]|4[0-9])\b/);
     const ageNum = adultAgeMatch ? Number(adultAgeMatch[1]) : 38;
     members.push({
@@ -194,7 +205,7 @@ function extractWithKeywords(rawText = "") {
     const ageNum = studentAgeMatch ? Number(studentAgeMatch[1]) : 15;
     members.push({
       id: "m_student",
-      label: /\bkavya\b/i.test(lower) ? "Kavya" : "Student Member",
+      label: /\bkavya\b/i.test(lower) ? "Kavya" : members.length === 0 && primaryName ? primaryName : "Student Member",
       age: ageNum,
       ageBand: deriveAgeBand(ageNum) || "6_17",
       gender: /\b(boy|son|male)\b/i.test(lower) && !/\b(kavya|daughter|girl)\b/i.test(lower) ? "male" : "female",
