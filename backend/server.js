@@ -44,6 +44,11 @@ function sanitizeHousehold(rawHh = {}) {
         delete clean.pan;
         delete clean.voterId;
         delete clean.rationCard;
+        delete clean.aadhaarNo;
+        delete clean.rationCardNo;
+        delete clean.panNo;
+        delete clean.voterIdNo;
+        delete clean.bankAccount;
         return {
           id: clean.id || `m_${idx + 1}`,
           label: clean.label || clean.name || `Member ${idx + 1}`,
@@ -56,6 +61,11 @@ function sanitizeHousehold(rawHh = {}) {
   delete cleanHh.aadhaar;
   delete cleanHh.pan;
   delete cleanHh.mobile;
+  delete cleanHh.aadhaarNo;
+  delete cleanHh.rationCardNo;
+  delete cleanHh.panNo;
+  delete cleanHh.voterIdNo;
+  delete cleanHh.bankAccount;
 
   return {
     householdId: cleanHh.householdId || "hh_sample_tn",
@@ -240,12 +250,169 @@ function extractWithKeywords(rawText = "") {
   };
 }
 
-export async function extractProfile(text = "", lang = "en") {
-  if (process.env.USE_MOCK_LLM === "true" || !process.env.LLM_API_KEY) {
-    return extractWithKeywords(text, lang);
-  }
-  return extractWithKeywords(text, lang);
+const LLM_ENUMS = {
+  incomeBand: ["lt_1l", "1l_2.5l", "2.5l_5l", "gt_5l"],
+  landBand: ["none", "lt_1ac", "1_2.5ac", "gt_2.5ac"],
+  ageBand: ["0_5", "6_17", "18_25", "26_59", "60_plus"],
+  studentLevel: ["school_1_8", "school_9_12", "college"],
+  gender: ["male", "female"],
+  needs: ["farming", "income_support", "pension", "education", "health", "housing", "livelihood"]
+};
+
+function scrubSensitiveIds(text) {
+  return String(text || "")
+    .replace(/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, "[REDACTED]")
+    .replace(/\b[A-Z]{5}\d{4}[A-Z]\b/gi, "[REDACTED]")
+    .replace(/\b[A-Z]{3}\d{7}\b/gi, "[REDACTED]")
+    .replace(/\b\d{9,18}\b/g, "[REDACTED]")
+    .replace(/\b(?:ration\s*card|rc)\s*(?:no\.?|number)?\s*[:#-]?\s*[A-Z0-9-]{6,}\b/gi, "[REDACTED]");
 }
+
+async function callLlm(text, lang) {
+  const baseUrl = process.env.LLM_BASE_URL || "https://api.openai.com/v1";
+  const model = process.env.LLM_MODEL || "gpt-4o-mini";
+  const apiKey = process.env.LLM_API_KEY;
+  const timeoutMs = Number(process.env.LLM_TIMEOUT_MS) || 15000;
+
+  const enumLines = Object.entries(LLM_ENUMS)
+    .map(([key, values]) => `${key}: ${values.join(", ")}`)
+    .join("\n");
+  const system = [
+    "Extract household eligibility details from the user's text.",
+    "Return ONLY a JSON object with the key \"household\" shaped as {\"incomeBand\": string, \"needs\": string[], \"members\": [{\"id\": string, \"label\": string, \"age\": integer, \"gender\": string, \"isWidow\": boolean, \"isStudent\": boolean, \"studentLevel\": string, \"isFarmer\": boolean, \"landBand\": string, \"isDailyWage\": boolean, \"isDisabled\": boolean}]}.",
+    `Allowed values:\n${enumLines}`,
+    `The answer language is ${lang}.`,
+    "Leave unknown fields out rather than guessing. Never include ID numbers."
+  ].join("\n");
+
+  const body = JSON.stringify({
+    model,
+    temperature: 0,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: text }
+    ]
+  });
+
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, 500 * (attempt - 1)));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        },
+        body,
+        signal: controller.signal
+      });
+      if (!res.ok) {
+        const err = new Error(`LLM request failed with status ${res.status}`);
+        err.retryable = res.status === 429 || res.status >= 500;
+        throw err;
+      }
+      const data = await res.json();
+      const content = data?.choices?.[0]?.message?.content;
+      try {
+        return JSON.parse(content);
+      } catch {
+        const err = new Error("LLM response was not valid JSON");
+        err.retryable = false;
+        throw err;
+      }
+    } catch (err) {
+      if (err.retryable === false) throw err;
+      lastErr = err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastErr;
+}
+
+function normalizeLlmProfile(raw, text = "") {
+  const hh = raw && typeof raw === "object" && raw.household && typeof raw.household === "object" ? raw.household : {};
+  const incomeBand = LLM_ENUMS.incomeBand.includes(hh.incomeBand) ? hh.incomeBand : "lt_1l";
+  const needs = [...new Set((Array.isArray(hh.needs) ? hh.needs : []).filter((n) => LLM_ENUMS.needs.includes(n)))];
+
+  const members = [];
+  const seenIds = new Set();
+  (Array.isArray(hh.members) ? hh.members : []).forEach((m, idx) => {
+    if (!m || typeof m !== "object" || Array.isArray(m)) return;
+    const baseId = typeof m.id === "string" && m.id.trim() ? m.id.trim() : `m_${idx + 1}`;
+    let id = baseId;
+    for (let n = 2; seenIds.has(id); n++) id = `${baseId}_${n}`;
+    seenIds.add(id);
+
+    const label = typeof m.label === "string" && m.label.trim() ? m.label.trim().slice(0, 60) : `Member ${idx + 1}`;
+    const age = Number.isInteger(m.age) && m.age >= 0 && m.age <= 120 ? m.age : undefined;
+    const ageBand = LLM_ENUMS.ageBand.includes(m.ageBand) ? m.ageBand : deriveAgeBand(age);
+    const isStudent = m.isStudent === true;
+    const isFarmer = m.isFarmer === true;
+    const landBand = LLM_ENUMS.landBand.includes(m.landBand) ? m.landBand : undefined;
+
+    members.push({
+      id,
+      label,
+      ...(age !== undefined ? { age } : {}),
+      ...(ageBand ? { ageBand } : {}),
+      gender: LLM_ENUMS.gender.includes(m.gender) ? m.gender : "male",
+      isWidow: m.isWidow === true,
+      isStudent,
+      ...(isStudent ? { studentLevel: LLM_ENUMS.studentLevel.includes(m.studentLevel) ? m.studentLevel : "school_9_12" } : {}),
+      isFarmer,
+      ...(landBand ? { landBand } : {}),
+      isDailyWage: m.isDailyWage === true,
+      isDisabled: m.isDisabled === true
+    });
+  });
+
+  if (members.length === 0) throw new Error("LLM response contained no valid members");
+
+  const farmerNoLand = members.some((m) => m.isFarmer && !m.landBand);
+  const missing = [];
+  if (!incomeBand) missing.push("incomeBand");
+  if (farmerNoLand) missing.push("landBand");
+
+  let followUp = null;
+  if (farmerNoLand) {
+    followUp = "Roughly how much land does the family farm (under 1 acre, 1 to 2.5 acres, or over 2.5 acres)?";
+  } else if (!String(text).trim()) {
+    followUp = "Tell us about your family members, their ages or roles (student, farmer, widow), and what support you need.";
+  }
+
+  return {
+    household: {
+      householdId: "hh_extracted",
+      district: "",
+      state: "Tamil Nadu",
+      incomeBand,
+      needs: needs.length ? needs : ["income_support"],
+      members
+    },
+    missing,
+    followUp
+  };
+}
+
+export async function extractProfile(text = "", lang = "en") {
+  const safeText = scrubSensitiveIds(String(text || ""));
+  if (process.env.USE_MOCK_LLM === "true" || !process.env.LLM_API_KEY) {
+    return extractWithKeywords(safeText, lang);
+  }
+  try {
+    const raw = await callLlm(safeText, lang);
+    return normalizeLlmProfile(raw, safeText);
+  } catch (err) {
+    console.warn("LLM extraction failed, using keyword fallback:", err.message);
+    return extractWithKeywords(safeText, lang);
+  }
+}
+
 
 app.get("/api/health", (req, res) => {
   const verified = loadJsonSafe(VERIFIED_PATH, []);
@@ -344,7 +511,13 @@ app.post("/api/match", (req, res) => {
   const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []);
   const body = req.body || {};
   const cleanHh = sanitizeHousehold(body.household && typeof body.household === "object" ? body.household : body);
-  const result = matchHousehold(verifiedSchemes, { ...body, household: cleanHh });
+  const safeBody = { ...body };
+  delete safeBody.aadhaarNo;
+  delete safeBody.rationCardNo;
+  delete safeBody.panNo;
+  delete safeBody.voterIdNo;
+  delete safeBody.bankAccount;
+  const result = matchHousehold(verifiedSchemes, { ...safeBody, household: cleanHh });
 
   const store = readStore();
   store.households[cleanHh.householdId] = cleanHh;
@@ -558,26 +731,29 @@ app.delete("/api/me", (req, res) => {
   const { householdId, token } = req.query || {};
   const store = readStore();
 
-  if (token && store.accounts[token]) {
+  if (token && !store.accounts[token]) {
+    return res.status(404).json({ error: "Account not found" });
+  }
+  if (!token && !householdId) {
+    return res.status(400).json({ error: "token or householdId is required" });
+  }
+
+  let targetHouseholdId = householdId;
+  if (token) {
+    targetHouseholdId = store.accounts[token].householdId;
     delete store.accounts[token];
-  } else if (householdId) {
+  } else {
     for (const [tok, acc] of Object.entries(store.accounts)) {
       if (acc.householdId === householdId) {
         delete store.accounts[tok];
       }
     }
-  } else {
-    store.accounts = {};
   }
 
-  if (householdId) {
-    delete store.households[householdId];
-    store.trackerItems = store.trackerItems.filter((i) => i.householdId !== householdId);
-    store.messages = store.messages.filter((m) => m.householdId !== householdId);
-  } else {
-    store.households = {};
-    store.trackerItems = [];
-    store.messages = [];
+  if (targetHouseholdId) {
+    delete store.households[targetHouseholdId];
+    store.trackerItems = store.trackerItems.filter((i) => i.householdId !== targetHouseholdId);
+    store.messages = store.messages.filter((m) => m.householdId !== targetHouseholdId);
   }
 
   writeStore(store);

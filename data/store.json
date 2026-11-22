@@ -1,46 +1,6 @@
-{
-  "accounts": {
-    "tok_948a3861af54b1b9": {
-      "mobile": "9876543210",
-      "householdId": "hh_sample_tn",
-      "createdAt": "2026-11-22T06:03:10.869Z"
-    }
-  },
-  "households": {
-    "hh_sample_tn": {
-      "householdId": "hh_sample_tn",
-      "district": "Chennai",
-      "state": "Tamil Nadu",
-      "incomeBand": "lt_1l",
-      "needs": [
-        "pension",
-        "education",
-        "farming",
-        "livelihood"
-      ],
-      "members": []
-    }
-  },
-  "trackerItems": [
-    {
-      "id": "trk_1795327390959_94ah",
-      "householdId": "hh_sample_tn",
-      "memberId": "m_widow",
-      "schemeId": "ignwps_widow_pension",
-      "status": "Not started",
-      "deadline": "2026-12-15",
-      "followUpDate": null,
-      "checklistDone": []
-    }
-  ],
-  "messages": [
-    {
-      "id": "msg_1795327390961_jwvwg",
-      "householdId": "hh_sample_tn",
-      "text": "Deadline noted for ignwps_widow_pension (2026-12-15). Reply STOP to opt out.",
-      "createdAt": "2026-11-22T06:03:10.961Z",
-      "trigger": "deadline",
-      "read": false
-    }
-  ]
+﻿{
+  "accounts": {},
+  "households": {},
+  "trackerItems": [],
+  "messages": []
 }
