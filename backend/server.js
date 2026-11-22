@@ -2,8 +2,10 @@ import express from "express";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { matchHousehold, buildRuleChangeMessages } from "./rules.js";
+import { readStore, writeStore, appendMessages } from "./store.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +34,37 @@ function loadJsonSafe(filePath, fallback = []) {
 
 function saveVerifiedSchemes(schemes) {
   fs.writeFileSync(VERIFIED_PATH, JSON.stringify(schemes, null, 2), "utf8");
+}
+
+function sanitizeHousehold(rawHh = {}) {
+  const members = Array.isArray(rawHh.members)
+    ? rawHh.members.map((m, idx) => {
+        const clean = { ...m };
+        delete clean.aadhaar;
+        delete clean.pan;
+        delete clean.voterId;
+        delete clean.rationCard;
+        return {
+          id: clean.id || `m_${idx + 1}`,
+          label: clean.label || clean.name || `Member ${idx + 1}`,
+          ...clean
+        };
+      })
+    : [];
+
+  const cleanHh = { ...rawHh };
+  delete cleanHh.aadhaar;
+  delete cleanHh.pan;
+  delete cleanHh.mobile;
+
+  return {
+    householdId: cleanHh.householdId || "hh_sample_tn",
+    district: cleanHh.district || "",
+    state: cleanHh.state || "Tamil Nadu",
+    incomeBand: cleanHh.incomeBand || "lt_1l",
+    needs: Array.isArray(cleanHh.needs) ? cleanHh.needs : ["income_support"],
+    members
+  };
 }
 
 function deriveAgeBand(ageNum) {
@@ -121,7 +154,7 @@ function extractWithKeywords(rawText = "") {
       gender: "female",
       isWidow: true,
       isStudent: false,
-      isFarmer: isFarmer,
+      isFarmer,
       ...(landBand ? { landBand } : {}),
       isDailyWage: false,
       isDisabled: false
@@ -208,7 +241,6 @@ function extractWithKeywords(rawText = "") {
 }
 
 export async function extractProfile(text = "", lang = "en") {
-  // Mock mode or deterministic keyword fallback (no paid/unconfirmed LLM calls)
   if (process.env.USE_MOCK_LLM === "true" || !process.env.LLM_API_KEY) {
     return extractWithKeywords(text, lang);
   }
@@ -227,7 +259,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/api/schemes", (req, res) => {
-  const { category, level, state, q, source, includeUnverified } = req.query;
+  const { category, level, state, q, source, includeUnverified, verified } = req.query;
 
   const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []).map((s) => ({
     ...s,
@@ -236,12 +268,16 @@ app.get("/api/schemes", (req, res) => {
 
   let pool = verifiedSchemes;
 
-  if (source === "all" || includeUnverified === "true") {
+  if (source === "all" || includeUnverified === "true" || verified === "false") {
     const allSchemes = loadJsonSafe(ALL_PATH, []).map((s) => ({
       ...s,
       verified: false
     }));
-    pool = source === "all" ? allSchemes : [...verifiedSchemes, ...allSchemes];
+    if (source === "all" || verified === "false") {
+      pool = allSchemes;
+    } else {
+      pool = [...verifiedSchemes, ...allSchemes];
+    }
   }
 
   let filtered = pool;
@@ -281,6 +317,23 @@ app.get("/api/schemes", (req, res) => {
   });
 });
 
+app.get("/api/schemes/:id", (req, res) => {
+  const { id } = req.params;
+  const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []).map((s) => ({ ...s, verified: true }));
+  const foundVerified = verifiedSchemes.find((s) => String(s.id) === String(id));
+  if (foundVerified) {
+    return res.json(foundVerified);
+  }
+
+  const allSchemes = loadJsonSafe(ALL_PATH, []).map((s) => ({ ...s, verified: false }));
+  const foundAll = allSchemes.find((s) => String(s.id) === String(id));
+  if (foundAll) {
+    return res.json(foundAll);
+  }
+
+  return res.status(404).json({ error: `Scheme '${id}' not found` });
+});
+
 app.post("/api/extract", async (req, res) => {
   const { text = "", lang = "en" } = req.body || {};
   const extracted = await extractProfile(text, lang);
@@ -289,7 +342,22 @@ app.post("/api/extract", async (req, res) => {
 
 app.post("/api/match", (req, res) => {
   const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []);
-  const result = matchHousehold(verifiedSchemes, req.body || {});
+  const body = req.body || {};
+  const cleanHh = sanitizeHousehold(body.household && typeof body.household === "object" ? body.household : body);
+  const result = matchHousehold(verifiedSchemes, { ...body, household: cleanHh });
+
+  const store = readStore();
+  store.households[cleanHh.householdId] = cleanHh;
+  writeStore(store);
+
+  const eligibleMatches = result.matches.filter((m) => m.status === "eligible").slice(0, 5);
+  const matchMsgs = eligibleMatches.map((m) => ({
+    householdId: cleanHh.householdId,
+    trigger: "new_match",
+    text: `Likely eligible for ${m.name} (${m.memberName}). Open checklist and steps. Reply STOP to opt out.`
+  }));
+  appendMessages(cleanHh.householdId, matchMsgs);
+
   res.json(result);
 });
 
@@ -322,6 +390,17 @@ app.put("/api/schemes/:id", (req, res) => {
   verifiedSchemes[idx] = updated;
   saveVerifiedSchemes(verifiedSchemes);
 
+  const hhId = updates.sampleHousehold?.householdId || "hh_sample_tn";
+  appendMessages(
+    hhId,
+    newMessages.map((m) => ({
+      id: m.id,
+      householdId: hhId,
+      trigger: "rule_changed",
+      text: `${m.text} Reply STOP to opt out.`
+    }))
+  );
+
   res.json({
     ok: true,
     scheme: {
@@ -330,6 +409,179 @@ app.put("/api/schemes/:id", (req, res) => {
       newMessages
     }
   });
+});
+
+// Fake OTP routes (mobile kept separately in accounts map)
+app.post("/api/otp/request", (req, res) => {
+  const { mobile } = req.body || {};
+  if (!mobile || !String(mobile).trim()) {
+    return res.status(400).json({ ok: false, error: "Sample mobile number is required" });
+  }
+  return res.json({ ok: true, simulated: true });
+});
+
+app.post("/api/otp/verify", (req, res) => {
+  const { mobile, otp } = req.body || {};
+  if (!mobile || !otp) {
+    return res.status(400).json({ error: "mobile and otp are required" });
+  }
+  const token = `tok_${crypto.randomBytes(8).toString("hex")}`;
+  const householdId = "hh_sample_tn";
+
+  const store = readStore();
+  store.accounts[token] = {
+    mobile: String(mobile).trim(),
+    householdId,
+    createdAt: new Date().toISOString()
+  };
+  if (!store.households[householdId]) {
+    store.households[householdId] = sanitizeHousehold({
+      householdId,
+      district: "Chennai",
+      state: "Tamil Nadu",
+      incomeBand: "lt_1l",
+      needs: ["pension", "education", "farming", "livelihood"],
+      members: []
+    });
+  }
+  writeStore(store);
+
+  return res.json({ token, householdId });
+});
+
+// Tracker endpoints
+app.get("/api/tracker", (req, res) => {
+  const store = readStore();
+  const { householdId } = req.query;
+  const items = householdId
+    ? store.trackerItems.filter((i) => i.householdId === householdId)
+    : store.trackerItems;
+  res.json({ items });
+});
+
+app.post("/api/tracker", (req, res) => {
+  const body = req.body || {};
+  if (!body.schemeId) {
+    return res.status(400).json({ error: "schemeId is required" });
+  }
+
+  const store = readStore();
+  const item = {
+    id: body.id || `trk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    householdId: body.householdId || "hh_sample_tn",
+    memberId: body.memberId || "household_general",
+    schemeId: body.schemeId,
+    status: body.status || "Not started",
+    deadline: body.deadline || null,
+    followUpDate: body.followUpDate || null,
+    checklistDone: Array.isArray(body.checklistDone) ? body.checklistDone : []
+  };
+
+  store.trackerItems.push(item);
+  writeStore(store);
+
+  if (item.deadline) {
+    appendMessages(item.householdId, [
+      {
+        householdId: item.householdId,
+        trigger: "deadline",
+        text: `Deadline noted for ${item.schemeId} (${item.deadline}). Reply STOP to opt out.`
+      }
+    ]);
+  }
+  if (item.followUpDate) {
+    appendMessages(item.householdId, [
+      {
+        householdId: item.householdId,
+        trigger: "followup",
+        text: `Follow-up scheduled for ${item.schemeId} (${item.followUpDate}). Reply STOP to opt out.`
+      }
+    ]);
+  }
+
+  res.status(201).json(item);
+});
+
+app.patch("/api/tracker/:id", (req, res) => {
+  const { id } = req.params;
+  const updates = req.body || {};
+  const store = readStore();
+
+  const idx = store.trackerItems.findIndex((i) => String(i.id) === String(id));
+  if (idx === -1) {
+    return res.status(404).json({ error: `Tracker item '${id}' not found` });
+  }
+
+  const current = store.trackerItems[idx];
+  const updated = {
+    ...current,
+    ...(updates.status !== undefined ? { status: updates.status } : {}),
+    ...(updates.deadline !== undefined ? { deadline: updates.deadline } : {}),
+    ...(updates.followUpDate !== undefined ? { followUpDate: updates.followUpDate } : {}),
+    ...(Array.isArray(updates.checklistDone) ? { checklistDone: updates.checklistDone } : {})
+  };
+
+  store.trackerItems[idx] = updated;
+  writeStore(store);
+
+  res.json(updated);
+});
+
+// Messages endpoints
+app.get("/api/messages", (req, res) => {
+  const store = readStore();
+  const { householdId } = req.query;
+  const messages = householdId
+    ? store.messages.filter((m) => m.householdId === householdId)
+    : store.messages;
+  res.json({ messages });
+});
+
+app.post("/api/messages/read", (req, res) => {
+  const { ids } = req.body || {};
+  const store = readStore();
+  const idSet = Array.isArray(ids) ? new Set(ids.map(String)) : null;
+
+  store.messages = store.messages.map((m) => {
+    if (!idSet || idSet.has(String(m.id))) {
+      return { ...m, read: true };
+    }
+    return m;
+  });
+
+  writeStore(store);
+  res.json({ ok: true });
+});
+
+// Privacy delete route
+app.delete("/api/me", (req, res) => {
+  const { householdId, token } = req.query || {};
+  const store = readStore();
+
+  if (token && store.accounts[token]) {
+    delete store.accounts[token];
+  } else if (householdId) {
+    for (const [tok, acc] of Object.entries(store.accounts)) {
+      if (acc.householdId === householdId) {
+        delete store.accounts[tok];
+      }
+    }
+  } else {
+    store.accounts = {};
+  }
+
+  if (householdId) {
+    delete store.households[householdId];
+    store.trackerItems = store.trackerItems.filter((i) => i.householdId !== householdId);
+    store.messages = store.messages.filter((m) => m.householdId !== householdId);
+  } else {
+    store.households = {};
+    store.trackerItems = [];
+    store.messages = [];
+  }
+
+  writeStore(store);
+  res.json({ ok: true });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
