@@ -197,3 +197,26 @@ export const sampleMatches = [
 
 export const sampleChatText =
   "Selvi, 62, widow, small farm under 1 acre. Murugan, 38, daily wage work. Kavya, 15, studying Class 10. Family income under 1 lakh a year.";
+
+// Seed alerts for the simulated SMS drawer. Shape: { id, type, text, read }.
+export const seedAlerts = [
+  {
+    id: "a1",
+    type: "new_match",
+    text: "New match: PM-KISAN may apply to Selvi.",
+    read: false,
+  },
+  {
+    id: "a2",
+    type: "new_match",
+    text: "New match: Class 9–12 Post-Matric Scholarship may apply to Kavya.",
+    read: false,
+  },
+  {
+    id: "a3",
+    type: "deadline",
+    text: "Deadline: Class 9–12 Post-Matric Scholarship closes on 2026-12-31.",
+    read: false,
+  },
+];
+
