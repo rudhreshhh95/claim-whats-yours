@@ -32,6 +32,12 @@
 [🚀 Quick Start](#-quick-start) &nbsp;•&nbsp;
 [🔌 API Reference](#-api-reference)
 
+## Live Deployment
+- **Live Web App (Vercel):** https://urimai-app.vercel.app
+- **Backend API (Render):** https://urimai-welfare-finder-api.onrender.com
+
+> **Note:** The backend runs on Render's free tier and may take **~30 to 60 seconds** on a cold start after being idle. Subsequent requests respond immediately.
+
 </div>
 
 ---
