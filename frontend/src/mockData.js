@@ -72,7 +72,7 @@ export const schemes = [
     documents: [
       "Land record",
       "Bank passbook (to bring, not to upload here)",
-      "Aadhaar card",
+      "Identity proof",
     ],
     steps: [
       "Go to the PM-KISAN website or your village office.",
@@ -108,7 +108,7 @@ export const schemes = [
       "Age proof",
       "Widowhood certificate or spouse's death certificate",
       "Bank passbook",
-      "Aadhaar card",
+      "Identity proof",
     ],
     steps: [
       "Visit your block or panchayat office.",
