@@ -144,14 +144,12 @@ function extractWithKeywords(rawText = "") {
   const isDailyWage = /daily\s*wage|wage\s*worker|coolie|labour|labor/i.test(lower);
   const isStudent = /student|school|college|class\s*\d+|10th|12th/i.test(lower);
 
-  // Leading person name, e.g. "rudhresh, 12, student" or "sita 62 widow farmer".
   const leadingNameMatch = cleaned.match(/^\s*([A-Za-z]{2,20})\s*(?:,|\s)\s*\d/);
   const NON_NAME_WORDS = /^(widow|farmer|student|household|family|member|income|son|daughter|husband|wife|mother|father|aged?|years?|yrs?|male|female|woman|man|child|kid|below|under|less|than|lakh|acre|land|the|and)$/i;
   const primaryName =
     leadingNameMatch && !NON_NAME_WORDS.test(leadingNameMatch[1])
       ? leadingNameMatch[1][0].toUpperCase() + leadingNameMatch[1].slice(1).toLowerCase()
       : "";
-  // A single widow who farms: no second earner/person mentioned.
   const secondPersonRe = /\b(murugan|son|daughter|kavya|child|kid|wife|sister|brother|father|student)\b/i;
   const soloWidowFarmer = isWidow && isFarmer && !secondPersonRe.test(lower);
 
@@ -248,6 +246,7 @@ function extractWithKeywords(rawText = "") {
   }
 
   return {
+    englishText: cleaned.trim(),
     household: {
       householdId: "hh_extracted",
       district: "",
@@ -279,32 +278,26 @@ function scrubSensitiveIds(text) {
     .replace(/\b(?:ration\s*card|rc)\s*(?:no\.?|number)?\s*[:#-]?\s*[A-Z0-9-]{6,}\b/gi, "[REDACTED]");
 }
 
-async function callLlm(text, lang) {
-  const baseUrl = process.env.LLM_BASE_URL || "https://api.openai.com/v1";
-  const model = process.env.LLM_MODEL || "gpt-4o-mini";
-  const apiKey = process.env.LLM_API_KEY;
+async function callGemini(text, lang) {
+  const model = (process.env.LLM_MODEL || "gemini-2.5-flash").trim();
+  const apiKey = (process.env.LLM_API_KEY || "").trim();
   const timeoutMs = Number(process.env.LLM_TIMEOUT_MS) || 15000;
 
   const enumLines = Object.entries(LLM_ENUMS)
     .map(([key, values]) => `${key}: ${values.join(", ")}`)
     .join("\n");
-  const system = [
-    "Extract household eligibility details from the user's text.",
-    "Return ONLY a JSON object with the key \"household\" shaped as {\"incomeBand\": string, \"needs\": string[], \"members\": [{\"id\": string, \"label\": string, \"age\": integer, \"gender\": string, \"isWidow\": boolean, \"isStudent\": boolean, \"studentLevel\": string, \"isFarmer\": boolean, \"landBand\": string, \"isDailyWage\": boolean, \"isDisabled\": boolean}]}.",
+
+  const systemPrompt = [
+    "Extract civic-welfare household eligibility details from Tamil, Tanglish, or English voice transcripts.",
+    "Return ONLY valid JSON with this exact shape:",
+    '{ "englishText": "Clean natural English translation of the input, e.g. Karthik, age 20, college student", "household": { "incomeBand": string, "needs": string[], "members": [{ "id": string, "label": string, "age": integer, "gender": string, "isWidow": boolean, "isStudent": boolean, "studentLevel": string, "isFarmer": boolean, "landBand": string, "isDailyWage": boolean, "isDisabled": boolean }] }, "followUp": string | null }',
     `Allowed values:\n${enumLines}`,
-    `The answer language is ${lang}.`,
+    `Language hint: ${lang || "auto"}.`,
+    "Transliterate names and roles in member.label into clean English letters (never Tamil script in label).",
     "Leave unknown fields out rather than guessing. Never include ID numbers."
   ].join("\n");
 
-  const body = JSON.stringify({
-    model,
-    temperature: 0,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: text }
-    ]
-  });
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   let lastErr;
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -312,26 +305,30 @@ async function callLlm(text, lang) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(`${baseUrl}/chat/completions`, {
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
-        },
-        body,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0
+          }
+        }),
         signal: controller.signal
       });
       if (!res.ok) {
-        const err = new Error(`LLM request failed with status ${res.status}`);
+        const err = new Error(`Gemini request failed with status ${res.status}`);
         err.retryable = res.status === 429 || res.status >= 500;
         throw err;
       }
       const data = await res.json();
-      const content = data?.choices?.[0]?.message?.content;
+      const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       try {
         return JSON.parse(content);
       } catch {
-        const err = new Error("LLM response was not valid JSON");
+        const err = new Error("Gemini response was not valid JSON");
         err.retryable = false;
         throw err;
       }
@@ -389,14 +386,24 @@ function normalizeLlmProfile(raw, text = "") {
   if (!incomeBand) missing.push("incomeBand");
   if (farmerNoLand) missing.push("landBand");
 
-  let followUp = null;
-  if (farmerNoLand) {
+  const englishText =
+    typeof raw?.englishText === "string" && raw.englishText.trim()
+      ? raw.englishText.trim()
+      : text;
+
+  let followUp =
+    typeof raw?.followUp === "string" && raw.followUp.trim()
+      ? raw.followUp.trim()
+      : null;
+
+  if (!followUp && farmerNoLand) {
     followUp = "Roughly how much land does the family farm (under 1 acre, 1 to 2.5 acres, or over 2.5 acres)?";
-  } else if (!String(text).trim()) {
+  } else if (!followUp && !String(text).trim()) {
     followUp = "Tell us about your family members, their ages or roles (student, farmer, widow), and what support you need.";
   }
 
   return {
+    englishText,
     household: {
       householdId: "hh_extracted",
       district: "",
@@ -412,18 +419,20 @@ function normalizeLlmProfile(raw, text = "") {
 
 export async function extractProfile(text = "", lang = "en") {
   const safeText = scrubSensitiveIds(String(text || ""));
-  if (process.env.USE_MOCK_LLM === "true" || !process.env.LLM_API_KEY) {
+  const useMock = String(process.env.USE_MOCK_LLM || "").toLowerCase() === "true";
+  const apiKey = (process.env.LLM_API_KEY || "").trim();
+
+  if (useMock || !apiKey) {
     return extractWithKeywords(safeText, lang);
   }
   try {
-    const raw = await callLlm(safeText, lang);
+    const raw = await callGemini(safeText, lang);
     return normalizeLlmProfile(raw, safeText);
   } catch (err) {
     console.warn("LLM extraction failed, using keyword fallback:", err.message);
     return extractWithKeywords(safeText, lang);
   }
 }
-
 
 app.get("/api/health", (req, res) => {
   const verified = loadJsonSafe(VERIFIED_PATH, []);
