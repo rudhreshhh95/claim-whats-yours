@@ -32,6 +32,16 @@ function loadJsonSafe(filePath, fallback = []) {
   }
 }
 
+function findSchemeTitle(schemeId) {
+  if (!schemeId) return "";
+  const verified = loadJsonSafe(VERIFIED_PATH, []);
+  const all = loadJsonSafe(ALL_PATH, []);
+  const match =
+    verified.find((s) => String(s.id) === String(schemeId)) ||
+    all.find((s) => String(s.id) === String(schemeId));
+  return match ? String(match.title || match.name || "") : "";
+}
+
 function saveVerifiedSchemes(schemes) {
   fs.writeFileSync(VERIFIED_PATH, JSON.stringify(schemes, null, 2), "utf8");
 }
@@ -279,9 +289,13 @@ function scrubSensitiveIds(text) {
 }
 
 async function callGemini(text, lang) {
-  const model = (process.env.LLM_MODEL || "gemini-2.5-flash").trim();
+  const primaryModel = (process.env.LLM_MODEL || "gemini-3.8-flash").trim();
   const apiKey = (process.env.LLM_API_KEY || "").trim();
   const timeoutMs = Number(process.env.LLM_TIMEOUT_MS) || 15000;
+
+  const candidateModels = [
+    ...new Set([primaryModel, "gemini-3.5-flash-lite", "gemini-flash-latest"].filter(Boolean))
+  ];
 
   const enumLines = Object.entries(LLM_ENUMS)
     .map(([key, values]) => `${key}: ${values.join(", ")}`)
@@ -297,30 +311,32 @@ async function callGemini(text, lang) {
     "Leave unknown fields out rather than guessing. Never include ID numbers."
   ].join("\n");
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const requestBody = JSON.stringify({
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      temperature: 0
+    }
+  });
 
   let lastErr;
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, 500 * (attempt - 1)));
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const model = candidateModels[attempt % candidateModels.length];
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: "user", parts: [{ text }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            temperature: 0
-          }
-        }),
+        body: requestBody,
         signal: controller.signal
       });
       if (!res.ok) {
-        const err = new Error(`Gemini request failed with status ${res.status}`);
-        err.retryable = res.status === 429 || res.status >= 500;
+        const err = new Error(`Gemini request (${model}) failed with status ${res.status}`);
+        err.retryable = res.status === 429 || res.status === 503 || res.status >= 500;
         throw err;
       }
       const data = await res.json();
@@ -328,8 +344,8 @@ async function callGemini(text, lang) {
       try {
         return JSON.parse(content);
       } catch {
-        const err = new Error("Gemini response was not valid JSON");
-        err.retryable = false;
+        const err = new Error(`Gemini response (${model}) was not valid JSON`);
+        err.retryable = true;
         throw err;
       }
     } catch (err) {
@@ -646,9 +662,15 @@ app.post("/api/otp/verify", (req, res) => {
 app.get("/api/tracker", (req, res) => {
   const store = readStore();
   const { householdId } = req.query;
-  const items = householdId
+  const rawItems = householdId
     ? store.trackerItems.filter((i) => i.householdId === householdId)
     : store.trackerItems;
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    title: item.title || findSchemeTitle(item.schemeId) || String(item.schemeId)
+  }));
+
   res.json({ items });
 });
 
@@ -659,11 +681,17 @@ app.post("/api/tracker", (req, res) => {
   }
 
   const store = readStore();
+  const resolvedTitle =
+    typeof body.title === "string" && body.title.trim()
+      ? body.title.trim()
+      : findSchemeTitle(body.schemeId) || String(body.schemeId);
+
   const item = {
     id: body.id || `trk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     householdId: body.householdId || "hh_sample_tn",
     memberId: body.memberId || "household_general",
     schemeId: body.schemeId,
+    title: resolvedTitle,
     status: body.status || "Not started",
     deadline: body.deadline || null,
     followUpDate: body.followUpDate || null,
@@ -708,6 +736,7 @@ app.patch("/api/tracker/:id", (req, res) => {
   const current = store.trackerItems[idx];
   const updated = {
     ...current,
+    ...(updates.title !== undefined ? { title: updates.title } : {}),
     ...(updates.status !== undefined ? { status: updates.status } : {}),
     ...(updates.deadline !== undefined ? { deadline: updates.deadline } : {}),
     ...(updates.followUpDate !== undefined ? { followUpDate: updates.followUpDate } : {}),

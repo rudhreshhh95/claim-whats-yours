@@ -24,6 +24,36 @@ function deriveAgeBandFromAge(age) {
   return "60_plus";
 }
 
+function normalizeStudentLevel(member) {
+  if (!member || typeof member !== "object") return undefined;
+  const existing =
+    typeof member.studentLevel === "string"
+      ? member.studentLevel.trim()
+      : member.profile && typeof member.profile.studentLevel === "string"
+        ? member.profile.studentLevel.trim()
+        : "";
+  if (existing) return existing;
+
+  const isStudent = Boolean(member.isStudent || member.profile?.isStudent);
+  if (!isStudent) return undefined;
+
+  const age = Number(member.age ?? member.profile?.age);
+  if (Number.isFinite(age)) {
+    return age >= 18 ? "college" : "school";
+  }
+  return undefined;
+}
+
+function normalizeMemberForMatch(member) {
+  if (!member || typeof member !== "object") return member;
+  const studentLevel = normalizeStudentLevel(member);
+  if (!studentLevel) return member;
+  return {
+    ...member,
+    studentLevel
+  };
+}
+
 const AGE_BANDS = ["0_5", "6_17", "18_25", "26_59", "60_plus"];
 const AGE_18_TO_35 = ["18_25", "26_59"];
 
@@ -104,8 +134,134 @@ function evaluateSingleRule(rule, household, member) {
   return compareValues(op, actual, expected, isAgeAlias) ? "pass" : "fail";
 }
 
+function computeRelevanceScore(scheme, member, household) {
+  const age = Number(member?.age ?? member?.profile?.age ?? 0);
+  const isStudent = Boolean(member?.isStudent || member?.profile?.isStudent);
+  const isFarmer = Boolean(member?.isFarmer || member?.profile?.isFarmer);
+  const isWidow = Boolean(member?.isWidow || member?.profile?.isWidow);
+  const isDailyWage = Boolean(member?.isDailyWage || member?.profile?.isDailyWage);
+  const isDisabled = Boolean(member?.isDisabled || member?.profile?.isDisabled);
+
+  const haystack = [
+    scheme?.id,
+    scheme?.name,
+    scheme?.title,
+    scheme?.category,
+    scheme?.benefitSummary,
+    ...(Array.isArray(scheme?.tags) ? scheme.tags : []),
+    JSON.stringify(scheme?.rules || [])
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  let score = 0;
+
+  if (
+    isStudent &&
+    (haystack.includes("student") || haystack.includes("scholarship") || haystack.includes("education"))
+  ) {
+    score += 30;
+  }
+  if (
+    isFarmer &&
+    (haystack.includes("farmer") ||
+      haystack.includes("agricultur") ||
+      haystack.includes("kisan") ||
+      haystack.includes("crop") ||
+      haystack.includes("farm"))
+  ) {
+    score += 30;
+  }
+  if (isWidow && (haystack.includes("widow") || haystack.includes("destitute"))) {
+    score += 35;
+  }
+  if (
+    Number.isFinite(age) &&
+    age >= 60 &&
+    (haystack.includes("senior") ||
+      haystack.includes("old age") ||
+      haystack.includes("elderly") ||
+      haystack.includes("pension"))
+  ) {
+    score += 30;
+  }
+  if (
+    isDailyWage &&
+    (haystack.includes("daily wage") ||
+      haystack.includes("labour") ||
+      haystack.includes("labor") ||
+      haystack.includes("unorganized") ||
+      haystack.includes("worker"))
+  ) {
+    score += 30;
+  }
+  if (
+    isDisabled &&
+    (haystack.includes("disab") ||
+      haystack.includes("differently abled") ||
+      haystack.includes("pwd") ||
+      haystack.includes("handicap"))
+  ) {
+    score += 35;
+  }
+
+  const needs = Array.isArray(household?.needs)
+    ? household.needs.map((n) => String(n).trim().toLowerCase())
+    : [];
+
+  const needKeywords = {
+    pension: ["pension"],
+    scholarship: ["scholarship", "student", "education"],
+    farming: ["farm", "agricultur", "kisan", "crop"],
+    housing: ["housing", "house", "awas", "shelter"],
+    widow: ["widow", "destitute"]
+  };
+
+  for (const need of needs) {
+    const terms = needKeywords[need] || [need];
+    if (terms.some((term) => haystack.includes(term))) {
+      score += 25;
+    }
+  }
+
+  const hasSpecificRoleOrNeed = Boolean(
+    isStudent ||
+      isFarmer ||
+      isWidow ||
+      (Number.isFinite(age) && age >= 60) ||
+      isDailyWage ||
+      isDisabled ||
+      needs.length > 0
+  );
+
+  const isGenericBroadScheme =
+    haystack.includes("atal pension") ||
+    haystack.includes("apy") ||
+    haystack.includes("pradhan mantri suraksha bima") ||
+    haystack.includes("pmsby");
+
+  if (hasSpecificRoleOrNeed && isGenericBroadScheme) {
+    score -= 15;
+  }
+
+  return score;
+}
+
+function compareMatchEntries(a, b) {
+  const scoreDiff = (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0);
+  if (scoreDiff !== 0) return scoreDiff;
+
+  if (a.status !== b.status) {
+    return a.status === "eligible" ? -1 : 1;
+  }
+
+  return (b.needScore || 0) - (a.needScore || 0);
+}
+
 export function evaluateSchemeForMember(scheme, household, member) {
   const rules = Array.isArray(scheme.rules) ? scheme.rules : [];
+  const normalizedMember = normalizeMemberForMatch(member);
 
   // Strict guard: schemes with zero rules can NEVER be marked "eligible"
   if (rules.length === 0) {
@@ -115,7 +271,8 @@ export function evaluateSchemeForMember(scheme, household, member) {
       passed: [],
       failed: ["No verified eligibility rules configured yet; verify directly with official office"],
       unknown: [],
-      needScore: 0
+      needScore: 0,
+      relevanceScore: computeRelevanceScore(scheme, normalizedMember, household)
     };
   }
 
@@ -124,7 +281,7 @@ export function evaluateSchemeForMember(scheme, household, member) {
   const unknown = [];
 
   for (const rule of rules) {
-    const result = evaluateSingleRule(rule, household, member);
+    const result = evaluateSingleRule(rule, household, normalizedMember);
     const label = rule.reason || `${rule.field} ${rule.op || "eq"} ${JSON.stringify(rule.value)}`;
     if (result === "pass") {
       passed.push(label);
@@ -141,6 +298,7 @@ export function evaluateSchemeForMember(scheme, household, member) {
   const needs = Array.isArray(household?.needs) ? household.needs : [];
   const needBonus = scheme.category && needs.includes(scheme.category) ? 25 : 0;
   const ratioScore = rules.length > 0 ? Math.round((passed.length / rules.length) * 75) : 0;
+  const relevanceScore = computeRelevanceScore(scheme, normalizedMember, household);
 
   return {
     status: allPassed ? "eligible" : "check",
@@ -148,7 +306,8 @@ export function evaluateSchemeForMember(scheme, household, member) {
     passed,
     failed,
     unknown,
-    needScore: allPassed ? Math.min(100, ratioScore + needBonus) : Math.min(74, ratioScore + needBonus)
+    needScore: allPassed ? Math.min(100, ratioScore + needBonus) : Math.min(74, ratioScore + needBonus),
+    relevanceScore
   };
 }
 
@@ -179,7 +338,7 @@ export function matchHousehold(schemes, payload = {}) {
     : [];
   const members =
     validMembers.length > 0
-      ? validMembers
+      ? validMembers.map(normalizeMemberForMatch)
       : [{ id: "household_general", label: "Household", name: "Household" }];
 
   const memberMatches = [];
@@ -214,11 +373,13 @@ export function matchHousehold(schemes, payload = {}) {
           verified: true,
           memberId,
           memberName,
+          studentLevel: member.studentLevel,
           status: rules.length === 0 ? "check" : evalRes.status,
           passed: evalRes.passed,
           failed: evalRes.failed,
           unknown: evalRes.unknown,
-          needScore: evalRes.needScore
+          needScore: evalRes.needScore,
+          relevanceScore: evalRes.relevanceScore
         };
         memberMatches.push(entry);
         schemeResults.push(entry);
@@ -226,13 +387,8 @@ export function matchHousehold(schemes, payload = {}) {
     }
   }
 
-  const sortFn = (a, b) => {
-    if (a.status === b.status) return (b.needScore || 0) - (a.needScore || 0);
-    return a.status === "eligible" ? -1 : 1;
-  };
-
-  memberMatches.sort(sortFn);
-  schemeResults.sort(sortFn);
+  memberMatches.sort(compareMatchEntries);
+  schemeResults.sort(compareMatchEntries);
 
   return {
     householdId: household.householdId || "default_household",
@@ -245,7 +401,9 @@ export function matchHousehold(schemes, payload = {}) {
       return {
         memberId: mId,
         memberName: m.label || m.name || mId,
-        matches: memberMatches.filter((item) => item.memberId === mId)
+        matches: memberMatches
+          .filter((item) => item.memberId === mId)
+          .sort(compareMatchEntries)
       };
     })
   };
