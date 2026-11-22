@@ -183,7 +183,23 @@ export default function App() {
     } catch {
       // Best effort: the local tracker already has the item.
     }
-    toast('Saved to tracker');
+    if (token) {
+      const schemeLabel = item.title || item.schemeName || match.title || match.name || match.schemeName || 'Welfare Scheme';
+      const whoEn = item.memberName ? 'Hi ' + item.memberName + ', ' : '';
+      const whoTa = item.memberName ? '\u0BB5\u0BA3\u0B95\u0BCD\u0B95\u0BAE\u0BCD ' + item.memberName + ', ' : '';
+      const smsText = '[Urimai SMS] EN: ' + whoEn + 'you are eligible for ' + schemeLabel + ' and added it to your tracker. Apply and learn more on the portal. | \u0BA4\u0BAE\u0BBF\u0BB4\u0BCD: ' + whoTa + schemeLabel + ' \u0BA4\u0BBF\u0B9F\u0BCD\u0B9F\u0BA4\u0BCD\u0BA4\u0BBF\u0BB1\u0BCD\u0B95\u0BC1 \u0BA8\u0BC0\u0B99\u0BCD\u0B95\u0BB3\u0BCD \u0BA4\u0B95\u0BC1\u0BA4\u0BBF\u0BAF\u0BBE\u0BA9\u0BB5\u0BB0\u0BCD \u0BAE\u0BB1\u0BCD\u0BB1\u0BC1\u0BAE\u0BCD \u0B89\u0B99\u0BCD\u0B95\u0BB3\u0BCD \u0B9F\u0BBF\u0BB0\u0BBE\u0B95\u0BCD\u0B95\u0BB0\u0BBF\u0BB2\u0BCD \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BB3\u0BCD\u0BB3\u0BA4\u0BC1. \u0BB5\u0BBF\u0BA3\u0BCD\u0BA3\u0BAA\u0BCD\u0BAA\u0BBF\u0B95\u0BCD\u0B95\u0BB5\u0BC1\u0BAE\u0BCD \u0BAE\u0BC7\u0BB2\u0BCD\u0BAE\u0BC1\u0BAE\u0BCD \u0BB5\u0BBF\u0BB5\u0BB0\u0B99\u0BCD\u0B95\u0BB3\u0BC8 \u0B85\u0BB1\u0BBF\u0BAF\u0BB5\u0BC1\u0BAE\u0BCD \u0BA4\u0BB3\u0BA4\u0BCD\u0BA4\u0BC8\u0BAA\u0BCD \u0BAA\u0BBE\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BB5\u0BC1\u0BAE\u0BCD.';
+      setMessages((prev) => [
+        {
+          id: 'sms_trk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          read: false,
+          text: smsText
+        },
+        ...prev
+      ]);
+      toast('Saved to tracker');
+    } else {
+      toast('Saved to tracker. Verify phone with OTP for SMS alerts');
+    }
   }
 
   return (
@@ -267,10 +283,10 @@ export default function App() {
           <>
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
               <p className="text-base font-bold text-emerald-900">
-                Find every government scheme your family qualifies for — in seconds.
+                Find every government scheme your family qualifies for in seconds.
               </p>
               <p className="mt-1 text-sm text-emerald-800">
-                Speak or type your family details in Tamil or English. Get matched with verified Tamil Nadu &amp; Central welfare schemes and track your applications in one place — with zero sensitive IDs required.
+                Speak or type your family details in Tamil or English. Get matched with verified Tamil Nadu &amp; Central welfare schemes and track your applications in one place with zero sensitive IDs required.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-white px-2.5 py-0.5 text-xs font-medium text-teal-700">

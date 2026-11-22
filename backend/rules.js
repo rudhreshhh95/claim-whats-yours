@@ -450,29 +450,34 @@ export function buildRuleChangeMessages(previousScheme, updatedScheme, sampleHou
     afterMatch.matches.map((m) => [`${m.memberId}:${m.schemeId}`, m.status])
   );
 
+  const schemeTitle = updatedScheme.name || previousScheme.name || "Welfare Scheme";
+  const applyHint = "Check eligibility, apply, or learn more on Urimai.";
+  const applyHintTa = "தகுதியைச் சரிபார்த்து, விண்ணப்பிக்க அல்லது மேலும் அறிய Urimai தளத்தைப் பார்க்கவும்.";
+
   if (rulesChanged) {
     messages.push({
       id: `msg_${updatedScheme.id}_${Date.now()}_rules`,
       schemeId: updatedScheme.id,
-      schemeName: updatedScheme.name,
+      schemeName: schemeTitle,
       type: "rule_updated",
-      text: `${updatedScheme.name} eligibility rules updated (${prevRules.length} -> ${nextRules.length} rules). Matches re-evaluated.`
+      text: `[Urimai SMS] EN: ${schemeTitle} eligibility rules updated (${prevRules.length} to ${nextRules.length} rules). ${applyHint} | தமிழ்: ${schemeTitle} தகுதி விதிகள் புதுப்பிக்கப்பட்டன. ${applyHintTa}`
     });
 
     for (const m of afterMatch.matches) {
       const key = `${m.memberId}:${m.schemeId}`;
       const prevStatus = beforeMap.get(key) || "none";
       if (prevStatus !== m.status) {
+        const who = m.memberName || "Member";
         messages.push({
           id: `msg_${updatedScheme.id}_${m.memberId}_${Date.now()}`,
           schemeId: updatedScheme.id,
-          schemeName: updatedScheme.name,
+          schemeName: schemeTitle,
           memberId: m.memberId,
           memberName: m.memberName,
           type: "status_changed",
           fromStatus: prevStatus,
           toStatus: m.status,
-          text: `${m.memberName} moved from ${prevStatus} to ${m.status} for ${updatedScheme.name}.`
+          text: `[Urimai SMS] EN: Hi ${who}, your status for ${schemeTitle} updated from ${prevStatus} to ${m.status}. ${applyHint} | தமிழ்: வணக்கம் ${who}, ${schemeTitle} திட்டத்திற்கான உங்கள் நிலை (${prevStatus} -> ${m.status}) மாறியுள்ளது. ${applyHintTa}`
         });
       }
     }
@@ -483,12 +488,12 @@ export function buildRuleChangeMessages(previousScheme, updatedScheme, sampleHou
         messages.push({
           id: `msg_${updatedScheme.id}_${memberId}_removed_${Date.now()}`,
           schemeId: updatedScheme.id,
-          schemeName: updatedScheme.name,
+          schemeName: schemeTitle,
           memberId,
           type: "match_removed",
           fromStatus: prevStatus,
           toStatus: "none",
-          text: `Match for ${memberId} on ${updatedScheme.name} changed after rule update.`
+          text: `[Urimai SMS] EN: Eligibility match for ${schemeTitle} changed after rule update. ${applyHint} | தமிழ்: விதி மாற்றத்திற்குப் பிறகு ${schemeTitle} திட்டப் பொருத்தம் மாறியுள்ளது. ${applyHintTa}`
         });
       }
     }
@@ -496,9 +501,9 @@ export function buildRuleChangeMessages(previousScheme, updatedScheme, sampleHou
     messages.push({
       id: `msg_${updatedScheme.id}_${Date.now()}_benefit`,
       schemeId: updatedScheme.id,
-      schemeName: updatedScheme.name,
+      schemeName: schemeTitle,
       type: "benefit_updated",
-      text: `${updatedScheme.name} benefit details were updated.`
+      text: `[Urimai SMS] EN: ${schemeTitle} benefit details were updated. ${applyHint} | தமிழ்: ${schemeTitle} திட்ட நன்மை விவரங்கள் புதுப்பிக்கப்பட்டன. ${applyHintTa}`
     });
   }
 

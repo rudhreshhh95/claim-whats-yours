@@ -1,1 +1,842 @@
-﻿{"accounts":{},"households":{},"trackerItems":[],"messages":[]}
+{
+  "accounts": {
+    "tok_51c786f63b976752": {
+      "mobile": "987654321",
+      "householdId": "hh_sample_tn",
+      "createdAt": "2026-11-22T14:57:35.367Z"
+    },
+    "tok_e20bd7c755cdd553": {
+      "mobile": "987654321",
+      "householdId": "hh_sample_tn",
+      "createdAt": "2026-11-22T15:11:15.913Z"
+    },
+    "tok_e515b4f7feb7aa13": {
+      "mobile": "987654321",
+      "householdId": "hh_sample_tn",
+      "createdAt": "2026-11-22T15:11:17.987Z"
+    },
+    "tok_3abfa445ea515046": {
+      "mobile": "986754321",
+      "householdId": "hh_sample_tn",
+      "createdAt": "2026-11-22T15:24:55.068Z"
+    },
+    "tok_f31b211832714692": {
+      "mobile": "986754321",
+      "householdId": "hh_sample_tn",
+      "createdAt": "2026-11-22T15:24:59.136Z"
+    }
+  },
+  "households": {
+    "hh_b6c6368f-f916-4201-897b-e9843b2e09b8": {
+      "householdId": "hh_b6c6368f-f916-4201-897b-e9843b2e09b8",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Srinidhi",
+          "name": "Srinidhi",
+          "age": 18,
+          "gender": "female",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_761ea532-d2c7-474c-bf5d-48e934d2661f": {
+      "householdId": "hh_761ea532-d2c7-474c-bf5d-48e934d2661f",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Srinidhi",
+          "name": "Srinidhi",
+          "age": 18,
+          "gender": "female",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347": {
+      "householdId": "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Srinidhi",
+          "name": "Srinidhi",
+          "age": 18,
+          "gender": "female",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_64c31133-ccf1-4028-9959-8f3cd84a6319": {
+      "householdId": "hh_64c31133-ccf1-4028-9959-8f3cd84a6319",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Srinidhi",
+          "name": "Srinidhi",
+          "age": 18,
+          "gender": "female",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_b1273573-1cf3-4744-8e74-8f06408f7e70": {
+      "householdId": "hh_b1273573-1cf3-4744-8e74-8f06408f7e70",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Srinidhi",
+          "name": "Srinidhi",
+          "age": 18,
+          "gender": "female",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b": {
+      "householdId": "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Srinidhi",
+          "name": "Srinidhi",
+          "age": 18,
+          "gender": "female",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_sample_tn": {
+      "householdId": "hh_sample_tn",
+      "district": "Chennai",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "pension",
+        "education",
+        "farming",
+        "livelihood"
+      ],
+      "members": []
+    },
+    "hh_caa38507-1b68-432f-a62c-1298c6bc3158": {
+      "householdId": "hh_caa38507-1b68-432f-a62c-1298c6bc3158",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": []
+    },
+    "hh_89552639-8952-426f-8004-ed354b22ff4f": {
+      "householdId": "hh_89552639-8952-426f-8004-ed354b22ff4f",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Rudhresh",
+          "name": "Rudhresh",
+          "age": 18,
+          "gender": "male",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e": {
+      "householdId": "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Rudhresh",
+          "name": "Rudhresh",
+          "age": 18,
+          "gender": "male",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_3a215608-fd16-4273-b72e-9bb8afe4402d": {
+      "householdId": "hh_3a215608-fd16-4273-b72e-9bb8afe4402d",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Rudhresh",
+          "name": "Rudhresh",
+          "age": 18,
+          "gender": "male",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_a095bc79-2501-4156-b295-a4eb4bf2531d": {
+      "householdId": "hh_a095bc79-2501-4156-b295-a4eb4bf2531d",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "p_1",
+          "label": "Rudhresh",
+          "name": "Rudhresh",
+          "age": null,
+          "gender": "other",
+          "isStudent": false,
+          "studentLevel": "",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    },
+    "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c": {
+      "householdId": "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c",
+      "district": "",
+      "state": "Tamil Nadu",
+      "incomeBand": "lt_1l",
+      "needs": [
+        "income_support"
+      ],
+      "members": [
+        {
+          "id": "m1",
+          "label": "Rudhresh",
+          "name": "Rudhresh",
+          "age": 18,
+          "gender": "male",
+          "isStudent": true,
+          "studentLevel": "college",
+          "isFarmer": false,
+          "isWidow": false,
+          "isSenior": false,
+          "isDailyWage": false
+        }
+      ]
+    }
+  },
+  "trackerItems": [
+    {
+      "id": "trk_1795358770441w6ou",
+      "householdId": "hh_sample_tn",
+      "memberId": "m1",
+      "schemeId": "tn_pudhumai_pen_higher_ed",
+      "title": "Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn)",
+      "status": "Not Started",
+      "deadline": null,
+      "followUpDate": null,
+      "checklistDone": [],
+      "memberName": "Srinidhi",
+      "category": "education",
+      "targetDate": ""
+    },
+    {
+      "id": "trk_17953602568421voq",
+      "householdId": "hh_sample_tn",
+      "memberId": "m1",
+      "schemeId": "class_9_12_scholarship",
+      "title": "Pre/Post-Matric Scholarship for Class 9–12 Students",
+      "status": "Not Started",
+      "deadline": null,
+      "followUpDate": null,
+      "checklistDone": [],
+      "memberName": "Rudhresh",
+      "category": "education"
+    },
+    {
+      "id": "trk_1795360761159y5pt",
+      "householdId": "hh_sample_tn",
+      "memberId": "p_1",
+      "schemeId": "class_9_12_scholarship",
+      "title": "Pre/Post-Matric Scholarship for Class 9–12 Students",
+      "status": "Not Started",
+      "deadline": null,
+      "followUpDate": null,
+      "checklistDone": [],
+      "memberName": "Rudhresh",
+      "category": "education"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg_1795361071529_pqabo",
+      "householdId": "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c",
+      "text": "Likely eligible for PM Vishwakarma Craft & Skill Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:24:31.529Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795361071529_n8o07",
+      "householdId": "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:24:31.529Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795361071529_eao8v",
+      "householdId": "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:24:31.529Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795361071529_f7p4h",
+      "householdId": "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:24:31.529Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795361071529_2hir8",
+      "householdId": "hh_6ae7c04f-ad7f-4bdb-b425-c39297bfa50c",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:24:31.529Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360752261_2al7l",
+      "householdId": "hh_a095bc79-2501-4156-b295-a4eb4bf2531d",
+      "text": "Likely eligible for PM Vishwakarma Craft & Skill Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:19:12.261Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360752261_w0eq0",
+      "householdId": "hh_a095bc79-2501-4156-b295-a4eb4bf2531d",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:19:12.261Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360752261_4p99e",
+      "householdId": "hh_a095bc79-2501-4156-b295-a4eb4bf2531d",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:19:12.261Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360752261_pzhjs",
+      "householdId": "hh_a095bc79-2501-4156-b295-a4eb4bf2531d",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:19:12.261Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360752261_ljexo",
+      "householdId": "hh_a095bc79-2501-4156-b295-a4eb4bf2531d",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:19:12.261Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360282057_q924y",
+      "householdId": "hh_3a215608-fd16-4273-b72e-9bb8afe4402d",
+      "text": "Likely eligible for PM Vishwakarma Craft & Skill Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:22.057Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360282057_hkbay",
+      "householdId": "hh_3a215608-fd16-4273-b72e-9bb8afe4402d",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:22.057Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360282057_41pho",
+      "householdId": "hh_3a215608-fd16-4273-b72e-9bb8afe4402d",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:22.057Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360282057_65nbg",
+      "householdId": "hh_3a215608-fd16-4273-b72e-9bb8afe4402d",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:22.057Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360282057_hfpay",
+      "householdId": "hh_3a215608-fd16-4273-b72e-9bb8afe4402d",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:22.057Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360263414_z56zw",
+      "householdId": "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e",
+      "text": "Likely eligible for PM Vishwakarma Craft & Skill Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:03.414Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360263414_e21ls",
+      "householdId": "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:03.414Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360263414_0zxy3",
+      "householdId": "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:03.414Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360263414_4qr7e",
+      "householdId": "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:03.414Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360263414_vho2n",
+      "householdId": "hh_13442c03-b9db-440e-b0a7-62f95ff8ef4e",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:11:03.414Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360253210_g295u",
+      "householdId": "hh_89552639-8952-426f-8004-ed354b22ff4f",
+      "text": "Likely eligible for PM Vishwakarma Craft & Skill Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:10:53.210Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360253210_pl8vw",
+      "householdId": "hh_89552639-8952-426f-8004-ed354b22ff4f",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:10:53.210Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360253210_70u89",
+      "householdId": "hh_89552639-8952-426f-8004-ed354b22ff4f",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:10:53.210Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360253210_u8rei",
+      "householdId": "hh_89552639-8952-426f-8004-ed354b22ff4f",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:10:53.210Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795360253210_4ki2t",
+      "householdId": "hh_89552639-8952-426f-8004-ed354b22ff4f",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Rudhresh). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T15:10:53.210Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795359468555_xdbi8",
+      "householdId": "hh_caa38507-1b68-432f-a62c-1298c6bc3158",
+      "text": "Likely eligible for PM Vishwakarma Craft & Skill Support (Household). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:57:48.555Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795359468555_9z8hl",
+      "householdId": "hh_caa38507-1b68-432f-a62c-1298c6bc3158",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Household). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:57:48.555Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795359468555_my2mb",
+      "householdId": "hh_caa38507-1b68-432f-a62c-1298c6bc3158",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Household). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:57:48.555Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795359468555_wrm95",
+      "householdId": "hh_caa38507-1b68-432f-a62c-1298c6bc3158",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Household). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:57:48.555Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795359468555_e1bla",
+      "householdId": "hh_caa38507-1b68-432f-a62c-1298c6bc3158",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Household). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:57:48.555Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358794174_sb856",
+      "householdId": "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:34.174Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358794174_uerux",
+      "householdId": "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:34.174Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358794174_tza59",
+      "householdId": "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:34.174Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358794174_cynd8",
+      "householdId": "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:34.174Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358794174_nctzn",
+      "householdId": "hh_5525a4b2-569d-44f4-ac58-d5c0708f1a8b",
+      "text": "Likely eligible for Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:34.174Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793826_q4jks",
+      "householdId": "hh_b1273573-1cf3-4744-8e74-8f06408f7e70",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.826Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793826_72fzi",
+      "householdId": "hh_b1273573-1cf3-4744-8e74-8f06408f7e70",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.826Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793826_jxdyd",
+      "householdId": "hh_b1273573-1cf3-4744-8e74-8f06408f7e70",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.826Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793826_bhclr",
+      "householdId": "hh_b1273573-1cf3-4744-8e74-8f06408f7e70",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.826Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793826_jwlac",
+      "householdId": "hh_b1273573-1cf3-4744-8e74-8f06408f7e70",
+      "text": "Likely eligible for Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.826Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793450_m6oup",
+      "householdId": "hh_64c31133-ccf1-4028-9959-8f3cd84a6319",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.450Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793450_vi5n2",
+      "householdId": "hh_64c31133-ccf1-4028-9959-8f3cd84a6319",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.450Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793450_iax56",
+      "householdId": "hh_64c31133-ccf1-4028-9959-8f3cd84a6319",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.450Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793450_f2j4y",
+      "householdId": "hh_64c31133-ccf1-4028-9959-8f3cd84a6319",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.450Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358793450_ue5l6",
+      "householdId": "hh_64c31133-ccf1-4028-9959-8f3cd84a6319",
+      "text": "Likely eligible for Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:33.450Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358792866_mst82",
+      "householdId": "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:32.866Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358792866_uce93",
+      "householdId": "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:32.866Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358792866_vrxy0",
+      "householdId": "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:32.866Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358792866_kbdzs",
+      "householdId": "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:32.866Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358792866_yoqcz",
+      "householdId": "hh_2835a77a-a7ba-4947-ab25-acdf0e29e347",
+      "text": "Likely eligible for Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:32.866Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358791689_v0aou",
+      "householdId": "hh_761ea532-d2c7-474c-bf5d-48e934d2661f",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:31.689Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358791689_r1unp",
+      "householdId": "hh_761ea532-d2c7-474c-bf5d-48e934d2661f",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:31.689Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358791689_akcf7",
+      "householdId": "hh_761ea532-d2c7-474c-bf5d-48e934d2661f",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:31.689Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358791689_loakw",
+      "householdId": "hh_761ea532-d2c7-474c-bf5d-48e934d2661f",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:31.689Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358791689_csmkp",
+      "householdId": "hh_761ea532-d2c7-474c-bf5d-48e934d2661f",
+      "text": "Likely eligible for Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:31.689Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358763571_6rq4w",
+      "householdId": "hh_b6c6368f-f916-4201-897b-e9843b2e09b8",
+      "text": "Likely eligible for NFSA Priority Household Foodgrain Entitlement (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:03.571Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358763571_0os4c",
+      "householdId": "hh_b6c6368f-f916-4201-897b-e9843b2e09b8",
+      "text": "Likely eligible for PM SVANidhi Micro Working Capital Support (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:03.571Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358763571_kkqgd",
+      "householdId": "hh_b6c6368f-f916-4201-897b-e9843b2e09b8",
+      "text": "Likely eligible for Pradhan Mantri Awas Yojana - Gramin (PMAY-G) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:03.571Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358763571_xdo53",
+      "householdId": "hh_b6c6368f-f916-4201-897b-e9843b2e09b8",
+      "text": "Likely eligible for Ayushman Bharat PM-JAY Health Cover (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:03.571Z",
+      "trigger": "new_match",
+      "read": false
+    },
+    {
+      "id": "msg_1795358763571_gi95m",
+      "householdId": "hh_b6c6368f-f916-4201-897b-e9843b2e09b8",
+      "text": "Likely eligible for Moovalur Ramamirtham Ammaiyar Higher Education Assurance (Pudhumai Penn) (Srinidhi). Open checklist and steps. Reply STOP to opt out.",
+      "createdAt": "2026-11-22T14:46:03.571Z",
+      "trigger": "new_match",
+      "read": false
+    }
+  ]
+}

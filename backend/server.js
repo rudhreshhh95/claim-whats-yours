@@ -641,15 +641,16 @@ app.put("/api/schemes/:id", (req, res) => {
 
 // Fake OTP routes (mobile kept separately in accounts map)
 app.post("/api/otp/request", (req, res) => {
-  const { mobile } = req.body || {};
+  const mobile = (req.body && (req.body.mobile || req.body.phone)) || '';
   if (!mobile || !String(mobile).trim()) {
     return res.status(400).json({ ok: false, error: "Sample mobile number is required" });
   }
-  return res.json({ ok: true, simulated: true });
+  return res.json({ ok: true, simulated: true, otp: '123456', message: 'Simulated SMS OTP sent' });
 });
 
 app.post("/api/otp/verify", (req, res) => {
-  const { mobile, otp } = req.body || {};
+  const otp = req.body && req.body.otp;
+  const mobile = (req.body && (req.body.mobile || req.body.phone)) || '';
   if (!mobile || !otp) {
     return res.status(400).json({ error: "mobile and otp are required" });
   }

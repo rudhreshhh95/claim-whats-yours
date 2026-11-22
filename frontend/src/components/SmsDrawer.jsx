@@ -10,10 +10,11 @@ export default function SmsDrawer({ open, onClose, messages, householdId, token,
   const [otpError, setOtpError] = useState('');
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [simMessages, setSimMessages] = useState([]);
 
   if (!open) return null;
 
-  const list = Array.isArray(messages) ? messages : [];
+  const list = [...simMessages, ...(Array.isArray(messages) ? messages : [])];
   const unread = list.filter((m) => m && m.read === false).length;
 
   async function sendOtp() {
@@ -21,9 +22,21 @@ export default function SmsDrawer({ open, onClose, messages, householdId, token,
     setOtpStatus('');
     setBusy(true);
     try {
-      await apiFetch('/api/otp/request', { method: 'POST', body: JSON.stringify({ phone }) });
+      const res = await apiFetch('/api/otp/request', {
+        method: 'POST',
+        body: JSON.stringify({ phone, mobile: phone })
+      });
+      const code = (res && res.otp) || '123456';
       setSent(true);
-      setOtpStatus('Code sent (simulated)');
+      setOtpStatus('Simulated SMS sent! Check Messages below.');
+      setSimMessages((prev) => [
+        {
+          id: 'sim_otp_' + Date.now(),
+          read: false,
+          text: '[Urimai SMS] Your verification code is ' + code + ' (simulated SMS).'
+        },
+        ...prev
+      ]);
     } catch (err) {
       setOtpError(err.message || 'Could not send code');
     } finally {
@@ -36,9 +49,20 @@ export default function SmsDrawer({ open, onClose, messages, householdId, token,
     setOtpStatus('');
     setBusy(true);
     try {
-      const res = await apiFetch('/api/otp/verify', { method: 'POST', body: JSON.stringify({ phone, otp }) });
+      const res = await apiFetch('/api/otp/verify', {
+        method: 'POST',
+        body: JSON.stringify({ phone, mobile: phone, otp })
+      });
       setToken(res.token);
-      setOtpStatus('Verified');
+      setOtpStatus('Phone verified! SMS alerts active.');
+      setSimMessages((prev) => [
+        {
+          id: 'sim_ok_' + Date.now(),
+          read: false,
+          text: '[Urimai SMS] Alerts enabled for ' + phone + ' (simulated).'
+        },
+        ...prev
+      ]);
     } catch (err) {
       setOtpError(err.message || 'Verification failed');
     } finally {
@@ -59,7 +83,6 @@ export default function SmsDrawer({ open, onClose, messages, householdId, token,
     } finally {
       setBusy(false);
     }
-    // Only reached after the server confirmed the delete.
     if (onDeleted) onDeleted();
   }
 
@@ -118,12 +141,13 @@ export default function SmsDrawer({ open, onClose, messages, householdId, token,
           )}
         </section>
 
-        <section className="rounded-3xl border border-slate-200 shadow-sm p-5 space-y-3">
+        <section className="rounded-3xl border border-red-100 bg-red-50/40 p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-red-900">Privacy & Data</h3>
           <button
             type="button"
             disabled={busy || !householdId}
             onClick={deleteData}
-            className="w-full rounded-2xl border border-red-500 text-red-600 hover:bg-red-50 px-4 py-2 text-sm font-medium disabled:opacity-50"
+            className="w-full rounded-2xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
           >
             Delete My Data
           </button>

@@ -19,9 +19,34 @@
       "Submit landholding details and bank account linkage for state verification."
     ],
     "rules": [
-      { "scope": "member", "field": "isFarmer", "op": "eq", "value": true, "reason": "Member is registered/active as a farmer" },
-      { "scope": "member", "field": "landBand", "op": "in", "value": ["lt_1ac", "1_to_2ac", "2_to_5ac"], "reason": "Cultivable landholding is within eligible limits" },
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Household income is in lower income bracket" }
+      {
+        "scope": "member",
+        "field": "isFarmer",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is registered/active as a farmer"
+      },
+      {
+        "scope": "member",
+        "field": "landBand",
+        "op": "in",
+        "value": [
+          "lt_1ac",
+          "1_to_2ac",
+          "2_to_5ac"
+        ],
+        "reason": "Cultivable landholding is within eligible limits"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Household income is in lower income bracket"
+      }
     ]
   },
   {
@@ -45,9 +70,27 @@
       "Track verification and direct benefit transfer (DBT) disbursement."
     ],
     "rules": [
-      { "scope": "member", "field": "isWidow", "op": "eq", "value": true, "reason": "Member has widow status" },
-      { "scope": "member", "field": "gender", "op": "eq", "value": "female", "reason": "Female beneficiary" },
-      { "scope": "household", "field": "incomeBand", "op": "eq", "value": "lt_1l", "reason": "Household annual income is below ₹1 lakh" }
+      {
+        "scope": "member",
+        "field": "isWidow",
+        "op": "eq",
+        "value": true,
+        "reason": "Member has widow status"
+      },
+      {
+        "scope": "member",
+        "field": "gender",
+        "op": "eq",
+        "value": "female",
+        "reason": "Female beneficiary"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "eq",
+        "value": "lt_1l",
+        "reason": "Household annual income is below ₹1 lakh"
+      }
     ]
   },
   {
@@ -58,7 +101,7 @@
     "state": "ALL",
     "benefitSummary": "Annual financial assistance covering tuition/books/maintenance allowance for students in Classes 9 to 12.",
     "officialUrl": "https://scholarships.gov.in/",
-    "lastVerified": "2026-10-15",
+    "lastVerified": "2026-11-22",
     "documents": [
       "Current school bonafide / enrollment proof for Class 9–12",
       "Previous class mark sheet or promotion record",
@@ -71,9 +114,30 @@
       "Get institution verification completed by the school."
     ],
     "rules": [
-      { "scope": "member", "field": "isStudent", "op": "eq", "value": true, "reason": "Member is currently a student" },
-      { "scope": "member", "field": "studentLevel", "op": "eq", "value": "school_9_12", "reason": "Enrolled in Class 9–12 (school_9_12)" },
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Household income qualifies for student scholarship" }
+      {
+        "scope": "member",
+        "field": "isStudent",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is currently a student"
+      },
+      {
+        "scope": "member",
+        "field": "studentLevel",
+        "op": "eq",
+        "value": "school_9_12",
+        "reason": "Enrolled in Class 9–12 (school_9_12)"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Household income qualifies for student scholarship"
+      }
     ]
   },
   {
@@ -84,7 +148,7 @@
     "state": "ALL",
     "benefitSummary": "Monthly pension support for senior citizens (60+ years) in low-income households.",
     "officialUrl": "https://nsap.nic.in/",
-    "lastVerified": "2026-10-15",
+    "lastVerified": "2026-11-22",
     "documents": [
       "Age proof showing 60 years or above",
       "Income certificate / low-income household proof",
@@ -96,8 +160,20 @@
       "Receive monthly pension directly in bank account."
     ],
     "rules": [
-      { "scope": "member", "field": "ageBand", "op": "eq", "value": "60_plus", "reason": "Member is aged 60 or above" },
-      { "scope": "household", "field": "incomeBand", "op": "eq", "value": "lt_1l", "reason": "Household income is under ₹1 lakh" }
+      {
+        "scope": "member",
+        "field": "ageBand",
+        "op": "eq",
+        "value": "60_plus",
+        "reason": "Member is aged 60 or above"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "eq",
+        "value": "lt_1l",
+        "reason": "Household income is under ₹1 lakh"
+      }
     ]
   },
   {
@@ -120,7 +196,16 @@
       "Download Ayushman card for cashless treatment at empaneled hospitals."
     ],
     "rules": [
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Household falls within low-income eligibility bracket" }
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Household falls within low-income eligibility bracket"
+      }
     ]
   },
   {
@@ -143,7 +228,16 @@
       "Receive stage-wise construction installments."
     ],
     "rules": [
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Low-income household eligible for rural housing support" }
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Low-income household eligible for rural housing support"
+      }
     ]
   },
   {
@@ -166,8 +260,24 @@
       "Report crop loss within 72 hours if damage occurs."
     ],
     "rules": [
-      { "scope": "member", "field": "isFarmer", "op": "eq", "value": true, "reason": "Member is a farmer cultivating crops" },
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l", "2_5l_to_5l"], "reason": "Household income is within eligible range" }
+      {
+        "scope": "member",
+        "field": "isFarmer",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is a farmer cultivating crops"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l",
+          "2_5l_to_5l"
+        ],
+        "reason": "Household income is within eligible range"
+      }
     ]
   },
   {
@@ -190,7 +300,13 @@
       "Receive KCC limit upon bank sanction."
     ],
     "rules": [
-      { "scope": "member", "field": "isFarmer", "op": "eq", "value": true, "reason": "Member is a farmer" }
+      {
+        "scope": "member",
+        "field": "isFarmer",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is a farmer"
+      }
     ]
   },
   {
@@ -213,7 +329,16 @@
       "Receive loan tranche disbursement."
     ],
     "rules": [
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Household is in low-income bracket" }
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Household is in low-income bracket"
+      }
     ]
   },
   {
@@ -235,7 +360,13 @@
       "Collect monthly entitlement."
     ],
     "rules": [
-      { "scope": "household", "field": "incomeBand", "op": "eq", "value": "lt_1l", "reason": "Household income is below ₹1 lakh" }
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "eq",
+        "value": "lt_1l",
+        "reason": "Household income is below ₹1 lakh"
+      }
     ]
   },
   {
@@ -258,8 +389,23 @@
       "Claim benefits as applicable under scheme guidelines."
     ],
     "rules": [
-      { "scope": "member", "field": "isFarmer", "op": "eq", "value": true, "reason": "Member is engaged in farming/agricultural work" },
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Low-income household" }
+      {
+        "scope": "member",
+        "field": "isFarmer",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is engaged in farming/agricultural work"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Low-income household"
+      }
     ]
   },
   {
@@ -282,8 +428,20 @@
       "Receive monthly pension in bank account."
     ],
     "rules": [
-      { "scope": "member", "field": "isWidow", "op": "eq", "value": true, "reason": "Member is a widow" },
-      { "scope": "household", "field": "incomeBand", "op": "eq", "value": "lt_1l", "reason": "Household income is below ₹1 lakh" }
+      {
+        "scope": "member",
+        "field": "isWidow",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is a widow"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "eq",
+        "value": "lt_1l",
+        "reason": "Household income is below ₹1 lakh"
+      }
     ]
   },
   {
@@ -294,7 +452,7 @@
     "state": "Tamil Nadu",
     "benefitSummary": "Monthly ₹1,000 assistance for eligible female students pursuing higher education after school.",
     "officialUrl": "https://pudhumaipenn.tn.gov.in/",
-    "lastVerified": "2026-10-15",
+    "lastVerified": "2026-11-22",
     "documents": [
       "School study certificate (Class 6–12)",
       "College admission / enrollment proof",
@@ -306,9 +464,31 @@
       "Receive monthly transfer upon meeting attendance norms."
     ],
     "rules": [
-      { "scope": "member", "field": "isStudent", "op": "eq", "value": true, "reason": "Member is a student" },
-      { "scope": "member", "field": "gender", "op": "eq", "value": "female", "reason": "Female student eligibility" },
-      { "scope": "member", "field": "studentLevel", "op": "in", "value": ["ug", "college", "diploma"], "reason": "Requires post-school / college enrollment" }
+      {
+        "scope": "member",
+        "field": "isStudent",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is a student"
+      },
+      {
+        "scope": "member",
+        "field": "gender",
+        "op": "eq",
+        "value": "female",
+        "reason": "Female student eligibility"
+      },
+      {
+        "scope": "member",
+        "field": "studentLevel",
+        "op": "in",
+        "value": [
+          "ug",
+          "college",
+          "diploma"
+        ],
+        "reason": "Requires post-school / college enrollment"
+      }
     ]
   },
   {
@@ -331,7 +511,16 @@
       "Access toolkit voucher and credit facility."
     ],
     "rules": [
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Eligible income bracket" }
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Eligible income bracket"
+      }
     ]
   },
   {
@@ -353,8 +542,27 @@
       "Receive wages directly into bank/post office account."
     ],
     "rules": [
-      { "scope": "household", "field": "incomeBand", "op": "in", "value": ["lt_1l", "1l_to_2_5l"], "reason": "Low-income rural household" },
-      { "scope": "member", "field": "ageBand", "op": "in", "value": ["18_to_35", "36_to_59", "60_plus"], "reason": "Adult working-age member" }
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "in",
+        "value": [
+          "lt_1l",
+          "1l_to_2_5l"
+        ],
+        "reason": "Low-income rural household"
+      },
+      {
+        "scope": "member",
+        "field": "ageBand",
+        "op": "in",
+        "value": [
+          "18_to_35",
+          "36_to_59",
+          "60_plus"
+        ],
+        "reason": "Adult working-age member"
+      }
     ]
   },
   {
@@ -377,9 +585,27 @@
       "Receive annual scholarship amount via DBT."
     ],
     "rules": [
-      { "scope": "member", "field": "isStudent", "op": "eq", "value": true, "reason": "Member is a student" },
-      { "scope": "member", "field": "studentLevel", "op": "eq", "value": "school_9_12", "reason": "Student is in Class 9–12" },
-      { "scope": "household", "field": "incomeBand", "op": "eq", "value": "lt_1l", "reason": "Household annual income is below ₹1 lakh" }
+      {
+        "scope": "member",
+        "field": "isStudent",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is a student"
+      },
+      {
+        "scope": "member",
+        "field": "studentLevel",
+        "op": "eq",
+        "value": "school_9_12",
+        "reason": "Student is in Class 9–12"
+      },
+      {
+        "scope": "household",
+        "field": "incomeBand",
+        "op": "eq",
+        "value": "lt_1l",
+        "reason": "Household annual income is below ₹1 lakh"
+      }
     ]
   },
   {
@@ -401,7 +627,16 @@
       "Maintain regular contributions until age 60."
     ],
     "rules": [
-      { "scope": "member", "field": "ageBand", "op": "in", "value": ["18_to_35", "36_to_59"], "reason": "Enrolment age is between 18 and 59" }
+      {
+        "scope": "member",
+        "field": "ageBand",
+        "op": "in",
+        "value": [
+          "18_to_35",
+          "36_to_59"
+        ],
+        "reason": "Enrolment age is between 18 and 59"
+      }
     ]
   },
   {
@@ -423,7 +658,17 @@
       "Keep account funded for annual renewal."
     ],
     "rules": [
-      { "scope": "member", "field": "ageBand", "op": "in", "value": ["18_to_35", "36_to_59", "60_plus"], "reason": "Adult member eligible for accident cover" }
+      {
+        "scope": "member",
+        "field": "ageBand",
+        "op": "in",
+        "value": [
+          "18_to_35",
+          "36_to_59",
+          "60_plus"
+        ],
+        "reason": "Adult member eligible for accident cover"
+      }
     ]
   },
   {
@@ -445,7 +690,16 @@
       "Renew annually as per policy cycle."
     ],
     "rules": [
-      { "scope": "member", "field": "ageBand", "op": "in", "value": ["18_to_35", "36_to_59"], "reason": "Member is within eligible age band" }
+      {
+        "scope": "member",
+        "field": "ageBand",
+        "op": "in",
+        "value": [
+          "18_to_35",
+          "36_to_59"
+        ],
+        "reason": "Member is within eligible age band"
+      }
     ]
   },
   {
@@ -467,7 +721,13 @@
       "Apply recommended soil nutrients per crop cycle."
     ],
     "rules": [
-      { "scope": "member", "field": "isFarmer", "op": "eq", "value": true, "reason": "Member is a farmer" }
+      {
+        "scope": "member",
+        "field": "isFarmer",
+        "op": "eq",
+        "value": true,
+        "reason": "Member is a farmer"
+      }
     ]
   }
 ]
