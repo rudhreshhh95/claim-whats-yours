@@ -1,100 +1,147 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { matchHousehold } from "./rules.js";
 
-dotenv.config();
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const schemesPath = path.resolve(__dirname, "../data/schemes_verified.json");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+const ROOT_DIR = path.resolve(__dirname, "..");
+const VERIFIED_PATH = path.join(ROOT_DIR, "data", "schemes_verified.json");
+const ALL_PATH = path.join(ROOT_DIR, "data", "schemes_all.json");
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 
-const store = {
-  householdId: "h_001",
-  tracker: [],
-  messages: [{ id: "msg_1", title: "Welcome", body: "Ready to check eligibility.", read: false }]
-};
-const loadSchemes = () => JSON.parse(fs.readFileSync(schemesPath, "utf-8").replace(/^\uFEFF/, ""));
-const saveSchemes = (list) => fs.writeFileSync(schemesPath, JSON.stringify(list, null, 2), "utf-8");
+function loadJsonSafe(filePath, fallback = []) {
+  try {
+    if (!fs.existsSync(filePath)) return fallback;
+    const raw = fs.readFileSync(filePath, "utf8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch (err) {
+    console.error(`Failed to read ${filePath}:`, err.message);
+    return fallback;
+  }
+}
 
-app.get("/api/health", (req, res) => res.json({ ok: true, service: "claim-whats-yours-backend" }));
-app.post("/api/otp/request", (req, res) => res.json({ ok: true }));
-app.post("/api/otp/verify", (req, res) => res.json({ token: "demo-token", householdId: store.householdId }));
+function saveVerifiedSchemes(schemes) {
+  fs.writeFileSync(VERIFIED_PATH, JSON.stringify(schemes, null, 2), "utf8");
+}
 
-app.post("/api/extract", (req, res) => {
-  const { text = "", lang = "en" } = req.body || {};
-  const t = String(text).toLowerCase();
-  const needs = [];
-  if (t.includes("pension") || t.includes("widow")) needs.push("pension");
-  if (t.includes("school") || t.includes("student") || t.includes("college")) needs.push("education");
-  if (t.includes("farm") || t.includes("land")) needs.push("farming");
-  if (t.includes("house") || t.includes("home")) needs.push("housing");
-  res.json({ household: { householdId: store.householdId, district: "sample-district", incomeBand: "lt_1l", needs, members: [], lang }, missing: [], followUp: null });
-});
-
-app.post("/api/match", (req, res) => {
-  const hh = req.body?.household || req.body || {};
-  res.json({ results: matchHousehold(loadSchemes(), hh) });
+app.get("/api/health", (req, res) => {
+  const verified = loadJsonSafe(VERIFIED_PATH, []);
+  const all = loadJsonSafe(ALL_PATH, []);
+  res.json({
+    ok: true,
+    port: PORT,
+    verifiedCount: verified.length,
+    allCount: all.length
+  });
 });
 
 app.get("/api/schemes", (req, res) => {
-  let list = loadSchemes();
-  const { category, q, verified } = req.query;
-  if (category) list = list.filter((s) => String(s.category).toLowerCase() === String(category).toLowerCase());
-  if (verified !== undefined) list = list.filter((s) => Boolean(s.verified) === (String(verified) === "true"));
-  if (q) {
-    const query = String(q).toLowerCase();
-    list = list.filter((s) => `${s.name} ${s.benefit} ${s.category}`.toLowerCase().includes(query));
+  const { category, level, state, q, source, includeUnverified } = req.query;
+
+  const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []).map((s) => ({
+    ...s,
+    verified: true
+  }));
+
+  let pool = verifiedSchemes;
+
+  if (source === "all" || includeUnverified === "true") {
+    const allSchemes = loadJsonSafe(ALL_PATH, []).map((s) => ({
+      ...s,
+      verified: false
+    }));
+    pool = source === "all" ? allSchemes : [...verifiedSchemes, ...allSchemes];
   }
-  res.json({ schemes: list });
+
+  let filtered = pool;
+
+  if (category && category !== "all") {
+    filtered = filtered.filter(
+      (s) => String(s.category || "").toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (level && level !== "all") {
+    filtered = filtered.filter(
+      (s) => String(s.level || "").toLowerCase() === String(level).toLowerCase()
+    );
+  }
+
+  if (state && state !== "ALL" && state !== "all") {
+    filtered = filtered.filter((s) => {
+      const st = String(s.state || "ALL").toLowerCase();
+      return st === "all" || st === String(state).toLowerCase();
+    });
+  }
+
+  if (q && String(q).trim()) {
+    const term = String(q).trim().toLowerCase();
+    filtered = filtered.filter(
+      (s) =>
+        String(s.name || "").toLowerCase().includes(term) ||
+        String(s.benefitSummary || "").toLowerCase().includes(term) ||
+        String(s.category || "").toLowerCase().includes(term)
+    );
+  }
+
+  res.json({
+    count: filtered.length,
+    schemes: filtered
+  });
 });
 
-app.get("/api/schemes/:id", (req, res) => {
-  const s = loadSchemes().find((x) => x.id === req.params.id);
-  if (!s) return res.status(404).json({ error: "Not found" });
-  res.json(s);
+app.post("/api/match", (req, res) => {
+  const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []);
+  const result = matchHousehold(verifiedSchemes, req.body || {});
+  res.json(result);
 });
+
 app.put("/api/schemes/:id", (req, res) => {
-  const list = loadSchemes();
-  const i = list.findIndex((x) => x.id === req.params.id);
-  if (i === -1) return res.status(404).json({ error: "Not found" });
-  list[i] = { ...list[i], ...req.body, id: list[i].id };
-  saveSchemes(list);
-  const msg = { id: `msg_${Date.now()}`, title: `Updated: ${list[i].name}`, body: "Scheme updated.", read: false };
-  store.messages.unshift(msg);
-  res.json({ scheme: list[i], newMessages: [msg] });
+  const { id } = req.params;
+  const updates = req.body || {};
+  const verifiedSchemes = loadJsonSafe(VERIFIED_PATH, []);
+
+  const idx = verifiedSchemes.findIndex((s) => String(s.id) === String(id));
+  if (idx === -1) {
+    return res.status(404).json({ error: `Scheme with id '${id}' not found in verified schemes` });
+  }
+
+  const current = verifiedSchemes[idx];
+  const updated = {
+    ...current,
+    ...(updates.name !== undefined ? { name: updates.name } : {}),
+    ...(updates.category !== undefined ? { category: updates.category } : {}),
+    ...(updates.level !== undefined ? { level: updates.level } : {}),
+    ...(updates.state !== undefined ? { state: updates.state } : {}),
+    ...(updates.benefitSummary !== undefined ? { benefitSummary: updates.benefitSummary } : {}),
+    ...(Array.isArray(updates.rules) ? { rules: updates.rules } : {}),
+    ...(Array.isArray(updates.documents) ? { documents: updates.documents } : {}),
+    ...(Array.isArray(updates.applySteps) ? { applySteps: updates.applySteps } : {}),
+    lastVerified: updates.lastVerified || new Date().toISOString().slice(0, 10)
+  };
+
+  verifiedSchemes[idx] = updated;
+  saveVerifiedSchemes(verifiedSchemes);
+
+  res.json({
+    ok: true,
+    scheme: {
+      ...updated,
+      verified: true
+    }
+  });
 });
 
-app.get("/api/tracker", (req, res) => res.json({ items: store.tracker }));
-app.post("/api/tracker", (req, res) => {
-  const item = { id: req.body?.id || `trk_${Date.now()}`, status: "pending", checklistDone: [], ...req.body };
-  store.tracker.push(item);
-  res.status(201).json(item);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Backend server running on http://localhost:${PORT}`);
 });
-app.patch("/api/tracker/:id", (req, res) => {
-  const item = store.tracker.find((x) => x.id === req.params.id);
-  if (!item) return res.status(404).json({ error: "Not found" });
-  if (req.body?.status !== undefined) item.status = req.body.status;
-  if (req.body?.checklistDone !== undefined) item.checklistDone = req.body.checklistDone;
-  res.json(item);
-});
-
-app.get("/api/messages", (req, res) => res.json({ messages: store.messages }));
-app.post("/api/messages/read", (req, res) => {
-  const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
-  store.messages = store.messages.map((m) => (!ids.length || ids.includes(m.id) ? { ...m, read: true } : m));
-  res.json({ ok: true });
-});
-
-app.delete("/api/me", (req, res) => {
-  store.tracker = [];
-  store.messages = [];
-  res.json({ ok: true });
-});
-
-app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
