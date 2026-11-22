@@ -61,12 +61,21 @@ export default function Tracker({ members = [], trackerItems = [], setTrackerIte
   }
 
   async function removeItem(item) {
+    // Optimistically remove from local state first.
+    setTrackerItems((prev) => prev.filter((it) => it.id !== item.id));
     try {
-      await apiFetch(`/api/tracker/${item.id}`, { method: 'DELETE' });
+      await apiFetch(`/api/tracker/${encodeURIComponent(item.id)}`, { method: 'DELETE' });
     } catch (err) {
       if (err?.network) setNotice('Removed locally (offline)');
+      // Re-sync from the server so local state does not drift from it.
+      try {
+        const data = await apiFetch('/api/tracker');
+        const list = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+        setTrackerItems(list);
+      } catch {
+        // Keep the optimistic state if the server cannot be reached.
+      }
     }
-    setTrackerItems((prev) => prev.filter((it) => it.id !== item.id));
   }
 
   const groups = groupByMember(trackerItems);

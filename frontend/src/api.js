@@ -31,7 +31,7 @@ export function getSchemes() {
   return request('/api/schemes')
 }
 
-// PUT /api/schemes/:id, body { rules, lastVerified } -> { scheme, newMessages: [Message] }
+// PUT /api/schemes/:id, body { rules, lastVerified } -> { ok, scheme: { ..., newMessages: [Message] } }
 export function putScheme(id, body) {
   return request(`/api/schemes/${encodeURIComponent(id)}`, {
     method: 'PUT',

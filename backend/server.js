@@ -581,6 +581,18 @@ app.put("/api/schemes/:id", (req, res) => {
   }
 
   const current = verifiedSchemes[idx];
+  const baseRules = Array.isArray(current.rules) ? current.rules : [];
+  const isRuleMap = Boolean(updates.rules) && typeof updates.rules === "object" && !Array.isArray(updates.rules);
+  const ignoredRuleKeys = isRuleMap
+    ? Object.keys(updates.rules).filter((key) => !baseRules.some((rule) => rule && rule.field === key))
+    : [];
+  const mappedRules = isRuleMap
+    ? baseRules.map((rule) =>
+        rule && Object.prototype.hasOwnProperty.call(updates.rules, rule.field)
+          ? { ...rule, value: updates.rules[rule.field] }
+          : rule
+      )
+    : null;
   const updated = {
     ...current,
     ...(updates.name !== undefined ? { name: updates.name } : {}),
@@ -589,6 +601,7 @@ app.put("/api/schemes/:id", (req, res) => {
     ...(updates.state !== undefined ? { state: updates.state } : {}),
     ...(updates.benefitSummary !== undefined ? { benefitSummary: updates.benefitSummary } : {}),
     ...(Array.isArray(updates.rules) ? { rules: updates.rules } : {}),
+    ...(isRuleMap ? { rules: mappedRules } : {}),
     ...(Array.isArray(updates.documents) ? { documents: updates.documents } : {}),
     ...(Array.isArray(updates.applySteps) ? { applySteps: updates.applySteps } : {}),
     lastVerified: updates.lastVerified || new Date().toISOString().slice(0, 10)
@@ -612,6 +625,7 @@ app.put("/api/schemes/:id", (req, res) => {
 
   res.json({
     ok: true,
+    ignoredRuleKeys,
     scheme: {
       ...updated,
       verified: true,
@@ -748,6 +762,19 @@ app.patch("/api/tracker/:id", (req, res) => {
 
   res.json(updated);
 });
+
+app.delete("/api/tracker/:id", (req, res) => {
+  const { id } = req.params;
+  const store = readStore();
+  const idx = store.trackerItems.findIndex((i) => String(i.id) === String(id));
+  if (idx === -1) {
+    return res.status(404).json({ error: `Tracker item '${id}' not found` });
+  }
+  store.trackerItems.splice(idx, 1);
+  writeStore(store);
+  res.json({ ok: true });
+});
+
 
 // Messages endpoints
 app.get("/api/messages", (req, res) => {
